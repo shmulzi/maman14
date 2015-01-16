@@ -1,1 +1,1 @@
-.data 32,2
+string: "kaki"
