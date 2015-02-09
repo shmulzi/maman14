@@ -10,23 +10,66 @@
 #define INSTRUCT_ENTRY 3
 #define INSTRUCT_EXTERN 4
 
+#define MEM_PTR_START_POINT 100
+
 char *appendc(char *s, char c);
 char *fgetword(FILE *f, char fc);
-int fident(FILE *f, char *word, char fc);
+void fident(FILE *f, char *word, char fc);
 void fas_dataent(FILE *f);
 void fas_stringent(FILE *f);
 
+/*assembledlist - a linked list that contains the final memory - word counter to print*/
+typedef struct asList{
+	int word;
+	int address;
+	struct asList *next;
+} assembledlist;
 
+/*al_alloc - allocates memory for a new item in the assembledlist linked list*/
+assembledlist *al_alloc(void)
+{
+	return (assembledlist *)malloc(sizeof(assembledlist));
+}
+
+/*al_append - returns an assembledlist with an item added to it containing the word and address*/
+assembledlist *al_append(int word, int address, assembledlist *al)
+{
+	if(al == NULL){
+		al = al_alloc();
+		al->word = word;
+		al->address = address;
+		al->next = NULL;
+	} else {
+		al->next = al_append(word,address,al->next);
+	}
+	return al;
+}
+
+/*printAssembledList - prints out the addresses and words in the given assembledlist*/
+void printAssembledList(assembledlist *al)
+{
+	if(al->next == NULL){
+		printf("%X         %X\n",al->address,al->word);
+	} else {
+		printf("%X         %X\n",al->address,al->word);
+		printAssembledList(al->next);
+	}
+}
+
+/*datalist - a linked list for numbers that are gathered with a '.data' entry word*/
 struct datalist {
     int num;
     struct datalist *next;
 };
 
+
+/*dl_alloc - allocates memory for a new item in the datalist linked list*/
 struct datalist *dl_alloc(void)
 {
     return (struct datalist *)malloc(sizeof(struct datalist));
 }
 
+/*dl_append - returns an datalist with an item added to it containing the word and address*/
 struct datalist *dl_append(int num, struct datalist *dl)
 {
     if (dl == NULL) {
@@ -39,6 +82,7 @@ struct datalist *dl_append(int num, struct datalist *dl)
     return dl;
 }
 
+/*readline - reads a line in the File f and returns 0 if it finished correctly*/
 int readline(FILE *f)
 {
 	char c;
@@ -54,13 +98,11 @@ int readline(FILE *f)
             fident(f,word,c);
 			printf("\nInstruction word received in line - %s\n", word);
             exit(0);
-			
 		}
 		
 		if (isupper(c) || islower(c)){
 			/*this line is either a tagged action / insrtuction line, or an action line*/
 			char *word = fgetword(f,c);
-			if(strrchr
 			printf("\nregular word received in line - %s\n", word);
 		} 
 		
@@ -68,6 +110,7 @@ int readline(FILE *f)
 	return 0;
 }
 
+/*appendc - adds the character c to the string s and returns it with the added character*/
 char *appendc(char *s, char c)
 {
 	char *str;
@@ -82,6 +125,7 @@ char *appendc(char *s, char c)
 	
 }
 
+/*fgetword - reads a word from the pointer fc and until it is ended by a space, EOF or endline*/
 char *fgetword(FILE *f, char fc)
 {
 	char *word = "";
@@ -94,23 +138,21 @@ char *fgetword(FILE *f, char fc)
 	return word;		
 }
 
-int fident(FILE *f,char *word, char fc)
+void fident(FILE *f,char *word, char fc)
 {
     if (strcmp(word, ".data") == 0) {
         fas_dataent(f);
-        return INSTRUCT_DATA;
     }
     if (strcmp(word, ".string") == 0) {
 		fas_stringent(f);
-        return INSTRUCT_STRING;
     }
     if (strcmp(word, ".entry") == 0) {
-        return INSTRUCT_ENTRY;
+        printf("\nEntry data word found\n");
     }
     if (strcmp(word, ".extern") == 0) {
-        return INSTRUCT_EXTERN;
+        printf("\nInstruct data word found\n");
     }
-    return INSTRUCT_DOES_NOT_EXIST;
+    printf("\nError - not a valid data entry word\n");
 }
 
 void fas_dataent(FILE *f)
@@ -149,6 +191,7 @@ void fas_stringent(FILE *f)
 
 int main()
 {
-	FILE *f = fopen("test.txt","r");
-	readline(f);
+	/*FILE *f = fopen("test.txt","r");
+	readline(f);*/
+	assembledlist *tempAl = NULL;
 }
