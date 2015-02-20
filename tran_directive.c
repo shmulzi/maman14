@@ -2,12 +2,49 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define DIR_DOES_NOT_EXIST 0
+#define DIR_DATA 1
+#define DIR_STRING 2
+#define DIR_ENTRY 3
+#define DIR_EXTERN 4
 
-#define INSTRUCT_DOES_NOT_EXIST 0
-#define INSTRUCT_DATA 1
-#define INSTRUCT_STRING 2
-#define INSTRUCT_ENTRY 3
-#define INSTRUCT_EXTERN 4
+char *rm_from_left(char *line, int indx);
+char *rm_from_right(char *line, int indx);
+int identify_dir(char *word);
+void as_dataent(char *line);
+void as_stringent(char *line);
+int add_to_assembled_list(int code);
+int get_from_mllist(char *label);
+void add_entry(char *label);
+void add_extern(char *label);
+
+typedef struct genlist{
+    char *label;
+    int address;
+    struct genlist *next;
+} generic_list;
+
+generic_list *entry_list;
+generic_list *extern_list;
+
+generic_list *gnl_alloc(void)
+{
+    return (generic_list *)malloc(sizeof(generic_list));
+}
+
+generic_list *gnl_append(char *label, int address, generic_list *gnl)
+{
+    if (gnl == NULL) {
+        gnl = gnl_alloc();
+        gnl->label = label;
+        gnl->address = address;
+        gnl->next = NULL;
+    } else {
+        gnl->next = gnl_append(label,address,gnl->next);
+    }
+    return gnl;
+}
+
 
 /*datalist - a linked list for numbers that are gathered with a '.data' entry word*/
 struct datalist {
@@ -35,53 +72,97 @@ struct datalist *dl_append(int num, struct datalist *dl)
     return dl;
 }
 
-void fident(FILE *f,char *word)
+int assemble_dir(char *line) {
+    
+    int result = -1;
+    char *entry_word = "";
+    int i = 0;
+
+    while (line[i] != ' ') {
+        entry_word = appendc(entry_word, line[i]);
+        i++;
+    }
+    while (line[i] == ' ') {
+        i++;
+    }
+    int entry_type = identify_dir(entry_word);
+    if (entry_type == DIR_DATA) {
+        as_dataent(line);
+    } else if (entry_type == DIR_STRING) {
+        as_stringent(line);
+    } else if (entry_type == DIR_ENTRY) {
+        add_entry(line);
+    } else if (entry_type == DIR_EXTERN) {
+        add_extern(line);
+    } else if (entry_type == DIR_DOES_NOT_EXIST) {
+        
+    }
+
+    return result;
+}
+
+int identify_dir(char *word)
 {
     if (strcmp(word, ".data") == 0) {
-        fas_dataent(f);
+        return DIR_DATA;
     }
     if (strcmp(word, ".string") == 0) {
-		fas_stringent(f);
+        return DIR_STRING;
     }
     if (strcmp(word, ".entry") == 0) {
-        printf("\nEntry data word found\n");
+        return DIR_ENTRY;
     }
     if (strcmp(word, ".extern") == 0) {
-        printf("\nInstruct data word found\n");
+        return DIR_EXTERN;
     }
-    printf("\nError - not a valid data entry word\n");
+    return DIR_DOES_NOT_EXIST;
 }
 
-void fas_dataent(FILE *f)
+int as_dataent(char *line)
 {
-    char c;
-    struct datalist *data_entries = NULL;
-    while (((c = fgetc(f)) != '\n') && c != EOF) {
-        int i;
-        if (isdigit(c)) {
-            i = c - '0';
-            while (((c = fgetc(f)) != ',') && c != EOF && isdigit(c)) {
-                i *= 10;
-                i += c - '0';
+    int f_address = -1;
+    int i = 0;
+    while (line[i] != '\n' && line[i] != EOF) {
+        int num;
+        if (isdigit(line[i])) {
+            num = line[i] - '0';
+            while (line[i] != ',' && line[i] != EOF && isdigit(line[i])) {
+                num *= 10;
+                num += line[i] - '0';
+                i++;
             }
         }
-        if (c == ',' || c == EOF || c == '\n') {
-            data_entries = dl_append(i, data_entries);
+        if(f_address == -1){
+            f_address = add_to_assembled_list(num);
         }
+        
+        i++;
     }
-    for(;data_entries != NULL; data_entries = data_entries->next){
-		printf("\na number from entries - %d\n", data_entries->num);
-	}
+    return f_address;
 }
 
-void fas_stringent(FILE *f)
+int as_stringent(char *line)
 {
-	char *word = "";
-	char c;
-	while((c = fgetc(f)) != '"');
-	while((c = fgetc(f)) != '"')
-	{
-		word = appendc(word,c);	
-	}
-	printf("\nin fas_stringent the word is %s\n", word);
+    int f_address = -1;
+    int i = 1; /*skipping one "*/
+    while(line[i] != '"'){
+        int c = line[i];
+        if(f_address == -1){
+            f_address = add_to_assembled_list(c);
+        }
+        i++;
+    }
+    return f_address;
+}
+
+void add_entry(char *label)
+{
+    int address = get_from_mllist(label);
+    entry_list = gnl_append(label,address,entry_list);
+}
+
+void add_extern(char *label)
+{
+    int address = get_from_mllist(label);
+    entry_extern = gnl_append(label,address,entry_extern);
 }

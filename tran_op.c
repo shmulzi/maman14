@@ -182,8 +182,7 @@ op_param *identify_param(char *param_word)
 	op_param *result = opp_alloc();
 	result->op_method = -1;
 	int era;
-	if(param_word[0] == '#'){		
-		printf("assigining op meth instant with param word = %c\n",param_word[0]);										
+	if(param_word[0] == '#'){									
 		result->op_method = OP_METH_INSTANT;
 	} else if (param_word[0] == '~'){										   					
 		result->op_method = OP_METH_DIST;
