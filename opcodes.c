@@ -54,6 +54,7 @@ struct oclist *getOpcodeByCode(char *code)
 		}
 	} else {
 		printf("opcodes.c - opcodes table has failed to populate\n");
+		return NULL;
 	}
 	return ptr;
 }

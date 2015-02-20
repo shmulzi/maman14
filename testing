@@ -1,0 +1,3 @@
+testing: mov r1,#5
+shlong: add #1,#2
+sub ~(testing,shlong),#3
