@@ -1,5 +1,8 @@
 #include "exampleheader.h"
+#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 struct oclist *oclistAlloc(void);
 

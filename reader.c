@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define MAX_LINE_LENGTH 80
 
@@ -15,6 +16,8 @@ char *rm_from_right(char *line, int indx);
 void add_to_mllist(char *label, int word);
 int get_from_mllist(char *label);
 char *slice(char *s, int l_index, int r_index);
+int assemble_dir(char *line);
+int assemble_op(char *line);
 
 
 char *freadline(FILE *f)
@@ -35,6 +38,7 @@ int delegate_line(char *line)
 	int r = 0;
 	printf("delegating line - %s\n",line);
 	char *label = "";
+	int is_dir = 0;
 	if(strlen(line) > 0){
 		if(line[0] == ';'){
 			/*This is a comment, go to next line*/
@@ -51,18 +55,22 @@ int delegate_line(char *line)
 				line = rm_from_left(line, i+1);
 			}
 			if(line[i] == '.'){
-				/*assemble_directive(line);*/
-				r = 0;
+				printf("got in to assembling directive for line - %s\n",line);
+				assemble_dir(line);
+				is_dir = 1;
 			}
 			i++;
 		}
-		int word_to_label = assemble_op(line);
+		int word_to_label;
+		if(is_dir == 0){
+			int word_to_label = assemble_op(line);
+		}
 		if(strlen(label) > 0){
 			add_to_mllist(label,word_to_label);
 		}
-		return r;
 	}
-	
+	printf("finished delgating line\n");
+	return r;
 }
 
 

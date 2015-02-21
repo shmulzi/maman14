@@ -76,7 +76,6 @@ int main(int argc, char *argv[])
 	populateOclist();
 	if(argc == 2){
 		FILE *f = fopen(argv[1],"r");
-		char *curr_line;
 		int read_switch = 0;
 		while(read_switch == 0){
 			read_switch = delegate_line(freadline(f));
@@ -89,4 +88,5 @@ int main(int argc, char *argv[])
 	}
 	print_mllist();
 	print_main_al();
+	return 0;
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define OP_METH_INSTANT 0
 #define OP_METH_DIRECT 1
