@@ -9,6 +9,7 @@
 #define DIR_ENTRY 3
 #define DIR_EXTERN 4
 
+char *appendc(char *s, char c);
 char *rm_from_left(char *line, int indx);
 char *rm_from_right(char *line, int indx);
 int identify_dir(char *word);
@@ -183,4 +184,25 @@ void add_extern(char *label)
 {
     int address = get_from_mllist(label);
     extern_list = gnl_append(label,address,extern_list);
+}
+
+
+void print_entry_list()
+{
+	printf("--- List of Entries:\n");
+	generic_list *ptr;
+	for(ptr = entry_list; ptr != NULL; ptr = ptr->next){
+		printf("Entry - %X           Word - %X\n",ptr->label,ptr->address);
+	}
+	printf("--- End list of Entries.\n");
+}
+
+void print_extern_list()
+{
+	printf("--- List of Externs:\n");
+	generic_list *ptr;
+	for(ptr = extern_list; ptr != NULL; ptr = ptr->next){
+		printf("Entry - %X           Word - %X\n",ptr->label,ptr->address);
+	}
+	printf("--- End list of Externs.\n");
 }

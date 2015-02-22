@@ -9,6 +9,8 @@ char *freadline(FILE *f);
 int delegate_line(char *line);
 void populateOclist();
 void print_mllist();
+void print_entry_list();
+void print_extern_list();
 
 /*assembledlist - a linked list that contains the final memory - word counter to print*/
 typedef struct asList{
@@ -88,5 +90,7 @@ int main(int argc, char *argv[])
 	}
 	print_mllist();
 	print_main_al();
+	print_entry_list();
+	print_extern_list();
 	return 0;
 }
