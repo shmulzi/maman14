@@ -11,6 +11,7 @@ void populateOclist();
 void print_mllist();
 void print_entry_list();
 void print_extern_list();
+void update_paramter_label_addresses();
 
 /*assembledlist - a linked list that contains the final memory - word counter to print*/
 typedef struct asList{
@@ -56,25 +57,38 @@ void printAssembledList(assembledlist *al)
 int add_to_assembled_list(int code)
 {
 	if(main_mem != NULL){
-		main_mem = al_append(code,(main_mem->address++),main_mem);
+		int new_address = main_mem->address + 1;
+		main_mem = al_append(code,new_address,main_mem);
+		printf("-------------    added something to main memory in address - %X with code - %X\n", main_mem->address, main_mem->word);
 	} else {
 		main_mem = al_append(code,MEM_PTR_START_POINT,main_mem);
+		printf("-------------    added something to main memory in address - %X with code - %X\n", main_mem->address, main_mem->word);
 	}
 	return main_mem->address;
+}
+
+void update_word_at_address(int address, int word)
+{
+	assembledlist *ptr;
+	for(ptr = main_mem; ptr != NULL; ptr = ptr->next){
+		if(ptr->address == address){
+			ptr->word = word;
+		}
+	}
 }
 
 void print_main_al()
 {
 	printf("--- List of Assembled:\n");
-	assembledlist *ptr;
-	for(ptr = main_mem; ptr != NULL; ptr = ptr->next){
-		printf("Word Address - %X           Word - %X\n",ptr->address,ptr->word);
+	for(; main_mem != NULL; main_mem = main_mem->next){
+		printf("Word Address - %X           Word - %X\n",main_mem->address,main_mem->word);
 	}
 	printf("--- End list of Assembled.\n");
 }
 
 int main(int argc, char *argv[])
 { 
+	main_mem = NULL;
 	populateOclist();
 	if(argc == 2){
 		FILE *f = fopen(argv[1],"r");
@@ -85,12 +99,17 @@ int main(int argc, char *argv[])
 	} else {
 		printf("you can only enter one argument currently\n");
 	}
+	update_paramter_label_addresses();
+	printf("\n--->Begin Report of Data Collected - \n\n");
 	if(main_mem != NULL){
-		printf("%d\n",main_mem->address);
+		print_mllist();
+		printf("\n");
+		print_main_al();
+		printf("\n");
+		print_entry_list();
+		printf("\n");
+		print_extern_list();
 	}
-	print_mllist();
-	print_main_al();
-	print_entry_list();
-	print_extern_list();
+	printf("\n--->Finished Report of Data Collected - \n\n");
 	return 0;
 }

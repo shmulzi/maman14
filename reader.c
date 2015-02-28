@@ -39,10 +39,11 @@ int delegate_line(char *line)
 	printf("delegating line - %s\n",line);
 	char *label = "";
 	int is_dir = 0;
+	int label_addr = 0;
 	if(strlen(line) > 0){
 		if(line[0] == ';'){
 			/*This is a comment, go to next line*/
-			r = 0;
+			return 0;
 		}
 		if(line[strlen(line)-1] == EOF){
 			line = rm_from_right(line,strlen(line)-1);
@@ -53,20 +54,22 @@ int delegate_line(char *line)
 			if(line[i] == ':'){
 				label = slice(line,0,i-1);
 				line = rm_from_left(line, i+1);
+				i = 0;
+				while(line[i] == ' '){ i++; }
 			}
 			if(line[i] == '.'){
 				printf("got in to assembling directive for line - %s\n",line);
-				assemble_dir(line);
+				label_addr = assemble_dir(line);
 				is_dir = 1;
 			}
 			i++;
 		}
-		int word_to_label;
+		
 		if(is_dir == 0){
-			int word_to_label = assemble_op(line);
+			label_addr = assemble_op(line);
 		}
 		if(strlen(label) > 0){
-			add_to_mllist(label,word_to_label);
+			add_to_mllist(label,label_addr);
 		}
 	}
 	printf("finished delgating line\n");

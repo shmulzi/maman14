@@ -1,2 +1,1 @@
-.data 12,2,3
-.string "abcd"
+mov ~(K,END), W

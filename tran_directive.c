@@ -19,6 +19,7 @@ int add_to_assembled_list(int code);
 int get_from_mllist(char *label);
 void add_entry(char *label);
 void add_extern(char *label);
+int get_from_mllist(char *label);
 
 typedef struct genlist{
     char *label;
@@ -92,11 +93,8 @@ int assemble_dir(char *line)
     while (line[i] == ' ') {
         i++;
     }
-    printf("entry word is - %s\n",entry_word);
     line = rm_from_left(line,i);
-    printf("rest of the line is now - %s\n",line);
     int entry_type = identify_dir(entry_word);
-    printf("entry word type is - %d\n",entry_type);
     if (entry_type == DIR_DATA) {
         f_address = as_dataent(line);
     } else if (entry_type == DIR_STRING) {
@@ -108,7 +106,6 @@ int assemble_dir(char *line)
     } else if (entry_type == DIR_DOES_NOT_EXIST) {
         
     }
-    printf("finished assembling entry\n");
     return f_address;
 }
 
@@ -153,7 +150,6 @@ int as_dataent(char *line)
 			i++;
 		}
     }
-    printf("finished gatherting numbers\n");
     return f_address;
 }
 
@@ -186,13 +182,28 @@ void add_extern(char *label)
     extern_list = gnl_append(label,address,extern_list);
 }
 
+void update_entries()
+{
+	generic_list *ptr;
+	for(ptr = entry_list; ptr != NULL; ptr = ptr->next){
+		ptr->address = get_from_mllist(ptr->label);
+	}
+}
+
+void update_externs()
+{
+	generic_list *ptr;
+	for(ptr = extern_list; ptr != NULL; ptr = ptr->next){
+		ptr->address = get_from_mllist(ptr->label);
+	}
+}
 
 void print_entry_list()
 {
 	printf("--- List of Entries:\n");
 	generic_list *ptr;
 	for(ptr = entry_list; ptr != NULL; ptr = ptr->next){
-		printf("Entry - %X           Word - %X\n",ptr->label,ptr->address);
+		printf("Entry - %s           Address - %X\n",ptr->label,ptr->address);
 	}
 	printf("--- End list of Entries.\n");
 }
@@ -202,7 +213,7 @@ void print_extern_list()
 	printf("--- List of Externs:\n");
 	generic_list *ptr;
 	for(ptr = extern_list; ptr != NULL; ptr = ptr->next){
-		printf("Entry - %X           Word - %X\n",ptr->label,ptr->address);
+		printf("Entry - %s           Address - %X\n",ptr->label,ptr->address);
 	}
 	printf("--- End list of Externs.\n");
 }

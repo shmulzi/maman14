@@ -35,7 +35,7 @@ void add_to_mllist(char *label, int address)
 
 int get_from_mllist(char *label)
 {
-	int result = -1;
+	int result = 0;
 	label_list *ptr = main_llist;
 	for(; ptr != NULL;ptr = ptr->next){
 		if(strcmp(ptr->label,label) == 0){

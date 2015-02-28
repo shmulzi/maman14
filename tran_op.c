@@ -61,6 +61,7 @@ char *rm_from_left(char *line, int indx);
 op_param *identify_param(char *param_word);
 int add_to_assembled_list(int code);
 int get_from_mllist(char *label);
+void add_to_lbpr_list(int address, char *label);
 
 
 int curr_op_addr;
@@ -157,24 +158,36 @@ int assemble_op(char *line)
 		op_do = d_operand->op_method;
 	}
 	int r_word = gen_as_op(group,opcode->val,op_so,op_do,era);
+	printf("r_word = %X\n",r_word);
 	curr_op_addr = opcode_address = add_to_assembled_list(r_word);
 	
 	if(s_operand != NULL){
 		if(s_operand->op_method == OP_METH_R_DIRECT){
 			add_to_assembled_list(assemble_param(s_operand,era, R_DIR_SOURCE));
 		} else {
-			add_to_assembled_list(assemble_param(s_operand,era, R_DIR_NONE));
+			int prm = assemble_param(s_operand,era, R_DIR_NONE);
+			if(s_operand->op_method == OP_METH_DIRECT && prm == 0){
+				/*inside the op_param you already have the label*/
+				add_to_lbpr_list(add_to_assembled_list(prm), s_operand->param);
+			} else {
+				add_to_assembled_list(prm);
+			}
 		}
-	} else {
 	}
 	if(d_operand != NULL){
 		if(d_operand->op_method == OP_METH_R_DIRECT){
 			add_to_assembled_list(assemble_param(d_operand,era, R_DIR_DEST));
 		} else {
-			add_to_assembled_list(assemble_param(d_operand,era, R_DIR_NONE));
+			int prm = assemble_param(d_operand,era, R_DIR_NONE);
+			if(d_operand->op_method == OP_METH_DIRECT && prm == 0){
+				/*inside the op_param you already have the label*/
+				add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
+			} else {
+				add_to_assembled_list(prm);
+			}
 		}
-	} else {
 	}
+	
 	return opcode_address;
 }
 
@@ -309,11 +322,8 @@ int assemble_param_rdirect(op_param *source_p, op_param *dest_p, int era)
 int get_max_dist(int addr_one, int addr_two, int op_addr)
 {
 	int dist_one_two = abs(addr_one-addr_two);
-	printf("dist_one_two = %d\n",dist_one_two);
 	int dist_op_one = abs(addr_one-op_addr);
-	printf("dist_op_one = %d\n",dist_op_one);
 	int dist_op_two = abs(addr_two-op_addr);
-	printf("dist_op_two = %d\n",dist_op_two);
 	return max(dist_one_two,dist_op_one,dist_op_two);
 }
 
@@ -331,6 +341,7 @@ int max(int a, int b, int c)
 
 int gen_as_op(int group, int opcode, int s_op, int d_op, int era)
 {
+	printf("generating opcode with group - %d, opcode - %d, s_op - %d, d_op - %d, era - %d\n", group, opcode, s_op, d_op, era);
 	group = group << 10;
 	opcode = opcode << 6;
 	s_op = s_op << 4;
