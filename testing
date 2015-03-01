@@ -1,1 +1,5 @@
-mov ~(K,END), W
+.entry LOOP
+.entry LENGTH
+.extern L3
+.extern W
+MAIN: mov ~(K,END), W

@@ -7,6 +7,7 @@ void update_word_at_address(int address, int word);
 int get_from_mllist(char *label);
 void update_entries();
 void update_externs();
+int calc_dist(char *dist_param);
 
 typedef struct lbprl{
 	int address;

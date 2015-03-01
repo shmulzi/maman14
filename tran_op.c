@@ -62,6 +62,8 @@ op_param *identify_param(char *param_word);
 int add_to_assembled_list(int code);
 int get_from_mllist(char *label);
 void add_to_lbpr_list(int address, char *label);
+int is_dist_labels_addressed(char *dist_param);
+int calc_dist(char *dist_param);
 
 
 int curr_op_addr;
@@ -169,6 +171,8 @@ int assemble_op(char *line)
 			if(s_operand->op_method == OP_METH_DIRECT && prm == 0){
 				/*inside the op_param you already have the label*/
 				add_to_lbpr_list(add_to_assembled_list(prm), s_operand->param);
+			} else if (s_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(s_operand->param) == 0){
+				add_to_lbpr_list(add_to_assembled_list(prm),s_operand->param);
 			} else {
 				add_to_assembled_list(prm);
 			}
@@ -181,6 +185,8 @@ int assemble_op(char *line)
 			int prm = assemble_param(d_operand,era, R_DIR_NONE);
 			if(d_operand->op_method == OP_METH_DIRECT && prm == 0){
 				/*inside the op_param you already have the label*/
+				add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
+			} else if (d_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(d_operand->param) == 0){
 				add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
 			} else {
 				add_to_assembled_list(prm);
@@ -211,6 +217,27 @@ op_param *identify_param(char *param_word)
 		result->op_method = OP_METH_DIRECT;
 	}
 	result->param = param_word;
+	return result;
+}
+
+int is_dist_labels_addressed(char *dist_param)
+{
+	int result = -1;
+	int i = 2; /*skip ~(*/
+	char *paramone ="";
+	char *paramtwo = "";
+	while(dist_param[i] != ','){
+		paramone = appendc(paramone,dist_param[i]);
+		i++;
+	}
+	i++;
+	while(dist_param[i] != ')'){
+		paramtwo = appendc(paramtwo,dist_param[i]);
+		i++;
+	}
+	if(get_from_mllist(paramone) == 0 || get_from_mllist(paramtwo) == 0){
+		result = 0;
+	}
 	return result;
 }
 
@@ -272,29 +299,7 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 		printf("op meth direct\n");
 	} else if(p->op_method == OP_METH_DIST){
 		printf("op meth dist\n");
-		char *label_one = "";
-		char *label_two = "";
-		int i = 0;
-		while(p->param[i] != '\0'){
-			if(isupper(p->param[i]) || islower(p->param[i])){
-				while(p->param[i] != ','){
-					label_one = appendc(label_one,p->param[i]);
-					i++;
-				}
-				i++;
-				while(p->param[i] != ')'){
-					label_two = appendc(label_two,p->param[i]);
-					i++;
-				}
-			}
-			i++;
-		}
-		int lbl_one_addr = get_from_mllist(label_one);
-		int lbl_two_addr = get_from_mllist(label_two);
-		printf("in dist, '%s' = %d, '%s' = %d, curr_op_addr = %d\n",label_one,lbl_one_addr,label_two,lbl_two_addr,curr_op_addr);
-		int max_addr = get_max_dist(lbl_one_addr,lbl_two_addr,curr_op_addr);
-		max_addr = max_addr << 2;
-		result = max_addr | era;
+		result = (calc_dist(p->param) << 2) | era;
 	} else if(p->op_method == OP_METH_R_DIRECT) {
 		printf("op meth r direct\n");
 		int r_addr = get_r_addr(p->param);
@@ -307,6 +312,34 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 		}
 		result = r_addr | era;
 	}
+	return result;
+}
+
+int calc_dist(char *dist_param)
+{
+	int result = -1;
+	char *label_one = "";
+	char *label_two = "";
+	int i = 0;
+	while(dist_param[i] != '\0'){
+		if(isupper(dist_param[i]) || islower(dist_param[i])){
+			while(dist_param[i] != ','){
+				label_one = appendc(label_one,dist_param[i]);
+				i++;
+			}
+			i++;
+			while(dist_param[i] != ')'){
+				label_two = appendc(label_two,dist_param[i]);
+				i++;
+			}
+		}
+		i++;
+	}
+	int lbl_one_addr = get_from_mllist(label_one);
+	int lbl_two_addr = get_from_mllist(label_two);
+	printf("in dist, '%s' = %d, '%s' = %d, curr_op_addr = %d\n",label_one,lbl_one_addr,label_two,lbl_two_addr,curr_op_addr);
+	int max_addr = get_max_dist(lbl_one_addr,lbl_two_addr,curr_op_addr);
+	max_addr = max_addr << 2;
 	return result;
 }
 
