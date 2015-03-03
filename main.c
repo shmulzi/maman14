@@ -82,8 +82,12 @@ int main(int argc, char *argv[])
 	if(argc == 2){
 		FILE *f = fopen(argv[1],"r");
 		int read_switch = 0;
+		int line_count = 1;
 		while(read_switch == 0){
+			printf("------------------------- begin line %d ----------------------------------\n",line_count);
 			read_switch = delegate_line(freadline(f));
+			printf("------------------------- end line %d ----------------------------------\n",line_count);
+			line_count++;
 		}
 	} else {
 		printf("you can only enter one argument currently\n");

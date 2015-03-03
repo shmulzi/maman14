@@ -63,8 +63,8 @@ int add_to_assembled_list(int code);
 int get_from_mllist(char *label);
 void add_to_lbpr_list(int address, char *label);
 int is_dist_labels_addressed(char *dist_param);
-int calc_dist(char *dist_param);
-
+int calc_dist(char *dist_param, int opcode_address);
+void add_to_distpr_list(char *dist_param, int opcode_address, int address);
 
 int curr_op_addr;
 
@@ -106,8 +106,8 @@ int assemble_op(char *line)
 			param_word = appendc(param_word,line[i]);
 			i++;
 		}
-		s_operand = identify_param(param_word);
-		d_operand = NULL;
+		s_operand = NULL;
+		d_operand = identify_param(param_word);
 	} else if(opcode->numOfParams == 2){
 		group = 2;
 		char *s_param_word = "";
@@ -146,9 +146,6 @@ int assemble_op(char *line)
 		group = 0;
 		s_operand = d_operand = NULL;
 	}
-	if(group == 2 && s_operand->op_method == OP_METH_R_DIRECT && d_operand->op_method == OP_METH_R_DIRECT){
-		add_to_assembled_list(assemble_param_rdirect(s_operand, d_operand, era));
-	}
 	
 	/*add op to main counter*/
 	int op_so = 0;
@@ -163,33 +160,38 @@ int assemble_op(char *line)
 	printf("r_word = %X\n",r_word);
 	curr_op_addr = opcode_address = add_to_assembled_list(r_word);
 	
-	if(s_operand != NULL){
-		if(s_operand->op_method == OP_METH_R_DIRECT){
-			add_to_assembled_list(assemble_param(s_operand,era, R_DIR_SOURCE));
-		} else {
-			int prm = assemble_param(s_operand,era, R_DIR_NONE);
-			if(s_operand->op_method == OP_METH_DIRECT && prm == 0){
-				/*inside the op_param you already have the label*/
-				add_to_lbpr_list(add_to_assembled_list(prm), s_operand->param);
-			} else if (s_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(s_operand->param) == 0){
-				add_to_lbpr_list(add_to_assembled_list(prm),s_operand->param);
+	if(group == 2 && s_operand->op_method == OP_METH_R_DIRECT && d_operand->op_method == OP_METH_R_DIRECT){
+		add_to_assembled_list(assemble_param_rdirect(s_operand, d_operand, era));
+	} else {
+	
+		if(s_operand != NULL){
+			if(s_operand->op_method == OP_METH_R_DIRECT){
+				add_to_assembled_list(assemble_param(s_operand,era, R_DIR_SOURCE));
 			} else {
-				add_to_assembled_list(prm);
+				int prm = assemble_param(s_operand,era, R_DIR_NONE);
+				if(s_operand->op_method == OP_METH_DIRECT && prm == 0){
+					/*inside the op_param you already have the label*/
+					add_to_lbpr_list(add_to_assembled_list(prm), s_operand->param);
+				} else if (s_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(s_operand->param) == 0){
+					add_to_distpr_list(s_operand->param,curr_op_addr,add_to_assembled_list(prm));
+				} else {
+					add_to_assembled_list(prm);
+				}
 			}
 		}
-	}
-	if(d_operand != NULL){
-		if(d_operand->op_method == OP_METH_R_DIRECT){
-			add_to_assembled_list(assemble_param(d_operand,era, R_DIR_DEST));
-		} else {
-			int prm = assemble_param(d_operand,era, R_DIR_NONE);
-			if(d_operand->op_method == OP_METH_DIRECT && prm == 0){
-				/*inside the op_param you already have the label*/
-				add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
-			} else if (d_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(d_operand->param) == 0){
-				add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
+		if(d_operand != NULL){
+			if(d_operand->op_method == OP_METH_R_DIRECT){
+				add_to_assembled_list(assemble_param(d_operand,era, R_DIR_DEST));
 			} else {
-				add_to_assembled_list(prm);
+				int prm = assemble_param(d_operand,era, R_DIR_NONE);
+				if(d_operand->op_method == OP_METH_DIRECT && prm == 0){
+					/*inside the op_param you already have the label*/
+					add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
+				} else if (d_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(d_operand->param) == 0){
+					add_to_distpr_list(d_operand->param,curr_op_addr,add_to_assembled_list(prm));
+				} else {
+					add_to_assembled_list(prm);
+				}
 			}
 		}
 	}
@@ -244,28 +246,28 @@ int is_dist_labels_addressed(char *dist_param)
 int get_r_addr(char *name)
 {
 	int result = -1;
-	if(strcmp(name,"r1") == 0){
+	if(strcmp(name,"r0") == 0){
 		result = ADDR_R1;
 	}
-	if(strcmp(name,"r2") == 0){
+	if(strcmp(name,"r1") == 0){
 		result = ADDR_R2;
 	}
-	if(strcmp(name,"r3") == 0){
+	if(strcmp(name,"r2") == 0){
 		result = ADDR_R3;
 	}
-	if(strcmp(name,"r4") == 0){
+	if(strcmp(name,"r3") == 0){
 		result = ADDR_R4;
 	}
-	if(strcmp(name,"r5") == 0){
+	if(strcmp(name,"r4") == 0){
 		result = ADDR_R5;
 	}
-	if(strcmp(name,"r6") == 0){
+	if(strcmp(name,"r5") == 0){
 		result = ADDR_R6;
 	}
-	if(strcmp(name,"r7") == 0){
+	if(strcmp(name,"r6") == 0){
 		result = ADDR_R7;
 	}
-	if(strcmp(name,"r8") == 0){
+	if(strcmp(name,"r7") == 0){
 		result = ADDR_R8;
 	}
 	return result;
@@ -299,7 +301,7 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 		printf("op meth direct\n");
 	} else if(p->op_method == OP_METH_DIST){
 		printf("op meth dist\n");
-		result = (calc_dist(p->param) << 2) | era;
+		result = (calc_dist(p->param, curr_op_addr) << 2) | era;
 	} else if(p->op_method == OP_METH_R_DIRECT) {
 		printf("op meth r direct\n");
 		int r_addr = get_r_addr(p->param);
@@ -315,7 +317,8 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 	return result;
 }
 
-int calc_dist(char *dist_param)
+
+int calc_dist(char *dist_param, int opcode_address)
 {
 	int result = -1;
 	char *label_one = "";
@@ -337,10 +340,9 @@ int calc_dist(char *dist_param)
 	}
 	int lbl_one_addr = get_from_mllist(label_one);
 	int lbl_two_addr = get_from_mllist(label_two);
-	printf("in dist, '%s' = %d, '%s' = %d, curr_op_addr = %d\n",label_one,lbl_one_addr,label_two,lbl_two_addr,curr_op_addr);
-	int max_addr = get_max_dist(lbl_one_addr,lbl_two_addr,curr_op_addr);
-	max_addr = max_addr << 2;
-	return result;
+	printf("in dist, '%s' = %X, '%s' = %X, curr_op_addr = %X\n",label_one,lbl_one_addr,label_two,lbl_two_addr,curr_op_addr);
+	result = get_max_dist(lbl_one_addr,lbl_two_addr,opcode_address);
+	return result << 2;
 }
 
 int assemble_param_rdirect(op_param *source_p, op_param *dest_p, int era)
@@ -357,11 +359,13 @@ int get_max_dist(int addr_one, int addr_two, int op_addr)
 	int dist_one_two = abs(addr_one-addr_two);
 	int dist_op_one = abs(addr_one-op_addr);
 	int dist_op_two = abs(addr_two-op_addr);
+	printf("dist_one_two = %X, dist_op_one = %X, dist_op_two = %X\n", dist_one_two,dist_op_one,dist_op_two);
 	return max(dist_one_two,dist_op_one,dist_op_two);
 }
 
 int max(int a, int b, int c)
 {
+	printf("in max - a = %X, b = %X, c = %X\n",a,b,c);
 	int max = a;
 	if(b > a){
 		max = b;
@@ -369,6 +373,7 @@ int max(int a, int b, int c)
 	if(c > a){
 		max = c;
 	}
+	printf("in max - a = %X, b = %X, c = %X, max = %X\n",a,b,c,max);
 	return max;
 }
 
