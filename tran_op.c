@@ -47,16 +47,13 @@ struct oclist
 
 
 struct oclist *getOpcodeByCode(char *code);
-op_param *get_param(char *line);
 char *appendc(char *s, char c);
-char *fgetword(FILE *f, char fc);
 int get_r_addr(char *name);
 int assemble_param(op_param *param, int era, int r_dir_side);
 int assemble_param_rdirect(op_param *source_p, op_param *dest_p, int era);
 int get_max_dist(int addr_one, int addr_two, int op_addr);
 int max(int a, int b, int c);
 int gen_as_op(int group, int opcode, int s_op, int d_op, int era);
-int get_label_addr(char *label);
 char *rm_from_left(char *line, int indx);
 op_param *identify_param(char *param_word);
 int add_to_assembled_list(int code);

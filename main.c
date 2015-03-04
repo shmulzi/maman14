@@ -12,9 +12,9 @@ void print_mllist();
 void print_entry_list();
 void print_extern_list();
 void update_paramter_label_addresses();
-int calc_dist(char *dist_param);
 
 int main_address;
+char *curr_err;
 
 /*assembledlist - a linked list that contains the final memory - word counter to print*/
 typedef struct asList{
@@ -22,6 +22,8 @@ typedef struct asList{
 	int address;
 	struct asList *next;
 } assembledlist;
+
+void print_to_obj_file(char *fn, assembledlist *al);
 
 assembledlist *main_mem;
 
@@ -74,8 +76,19 @@ void print_main_al()
 	printf("--- End list of Assembled.\n");
 }
 
+void update_curr_err(char *err)
+{
+	curr_err = err;
+}
+
+void print_error(int ln, char *err)
+{
+	printf("Error in line %d - %s",ln,err);
+}
+
 int main(int argc, char *argv[])
 {
+	curr_err = "";
 	main_address = MEM_PTR_START_POINT;
 	main_mem = NULL;
 	populateOclist();
@@ -94,6 +107,7 @@ int main(int argc, char *argv[])
 	}
 	update_paramter_label_addresses();
 	printf("\n--->Begin Report of Data Collected - \n\n");
+	print_to_obj_file(argv[1],main_mem);
 	if(main_mem != NULL){
 		print_mllist();
 		printf("\n");
@@ -103,6 +117,6 @@ int main(int argc, char *argv[])
 		printf("\n");
 		print_extern_list();
 	}
-	printf("\n--->Finished Report of Data Collected - \n\n");
+	printf("\n--->Finished Report of Data Collected\n\n");
 	return 0;
 }

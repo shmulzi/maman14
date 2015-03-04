@@ -7,14 +7,9 @@
 
 
 char *appendc(char *s, char c);
-void fident(FILE *f, char *word);
-void fas_dataent(FILE *f);
-void fas_stringent(FILE *f);
-void create_label(char *line, int indx);
 char *rm_from_left(char *line, int indx);
 char *rm_from_right(char *line, int indx);
 void add_to_mllist(char *label, int word);
-int get_from_mllist(char *label);
 char *slice(char *s, int l_index, int r_index);
 int assemble_dir(char *line);
 int assemble_op(char *line);

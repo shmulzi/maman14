@@ -11,7 +11,6 @@
 
 char *appendc(char *s, char c);
 char *rm_from_left(char *line, int indx);
-char *rm_from_right(char *line, int indx);
 int identify_dir(char *word);
 int as_dataent(char *line);
 int as_stringent(char *line);
