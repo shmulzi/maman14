@@ -19,6 +19,7 @@ int get_from_mllist(char *label);
 void add_entry(char *label);
 void add_extern(char *label);
 int get_from_mllist(char *label);
+void print_error(char *err);
 
 typedef struct genlist{
     char *label;
@@ -103,7 +104,7 @@ int assemble_dir(char *line)
     } else if (entry_type == DIR_EXTERN) {
         add_extern(line);
     } else if (entry_type == DIR_DOES_NOT_EXIST) {
-        
+        print_error("Directive does not exist");
     }
     return f_address;
 }
@@ -139,6 +140,8 @@ int as_dataent(char *line)
                 num += line[i] - '0';
                 i++;
             }
+        } else {
+        	print_error("Directive Error - .data directive can only include integers");
         }
         if(f_address == -1){
             f_address = add_to_assembled_list(num);
@@ -157,6 +160,9 @@ int as_stringent(char *line)
     int f_address = -1;
     int i = 1; /*skipping one "*/
     while(line[i] != '"'){
+    	if(line[i] == EOF || line[i] == '\n'){
+    		print_error("Directive Error - .string directive must end with quotation marks");
+    	}
         int c = line[i];
         if(f_address == -1){
             f_address = add_to_assembled_list(c);

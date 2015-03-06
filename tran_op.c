@@ -62,6 +62,7 @@ void add_to_lbpr_list(int address, char *label);
 int is_dist_labels_addressed(char *dist_param);
 int calc_dist(char *dist_param, int opcode_address);
 void add_to_distpr_list(char *dist_param, int opcode_address, int address);
+void print_error(char *err);
 
 int curr_op_addr;
 

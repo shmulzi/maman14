@@ -13,6 +13,7 @@ void print_entry_list();
 void print_extern_list();
 void update_paramter_label_addresses();
 
+int curr_linenum;
 int main_address;
 char *curr_err;
 
@@ -81,9 +82,10 @@ void update_curr_err(char *err)
 	curr_err = err;
 }
 
-void print_error(int ln, char *err)
+void print_error(char *err)
 {
-	printf("Error in line %d - %s",ln,err);
+	printf("Error in line %d - %s\n",curr_linenum,err);
+	exit(-1);
 }
 
 int main(int argc, char *argv[])
@@ -95,19 +97,21 @@ int main(int argc, char *argv[])
 	if(argc == 2){
 		FILE *f = fopen(argv[1],"r");
 		int read_switch = 0;
-		int line_count = 1;
+		curr_linenum = 1;
 		while(read_switch == 0){
-			printf("------------------------- begin line %d ----------------------------------\n",line_count);
+			printf("------------------------- begin line %d ----------------------------------\n",curr_linenum);
 			read_switch = delegate_line(freadline(f));
-			printf("------------------------- end line %d ----------------------------------\n",line_count);
-			line_count++;
+			printf("------------------------- end line %d ----------------------------------\n",curr_linenum);
+			curr_linenum++;
 		}
 	} else {
 		printf("you can only enter one argument currently\n");
 	}
 	update_paramter_label_addresses();
-	printf("\n--->Begin Report of Data Collected - \n\n");
+
 	print_to_obj_file(argv[1],main_mem);
+	printf("\n--->Begin Report of Data Collected - \n\n");
+
 	if(main_mem != NULL){
 		print_mllist();
 		printf("\n");
