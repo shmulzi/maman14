@@ -26,6 +26,7 @@ void print_to_obj_file(char *fn, assembledlist *al)
 	strcpy(full_fn,fn);
 	strcat(full_fn,file_ext);
 	f = fopen(full_fn,"w");
+	fprintf(f,"Base 16 Address        Base 16 machine code\n");
 	for(ptr = al; ptr != NULL; ptr = ptr->next){
 		fprintf(f,"%X        %X\n",ptr->address,ptr->word);
 	}

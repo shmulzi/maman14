@@ -1,3 +1,4 @@
+Base 16 Address        Base 16 machine code
 64        824
 65        4C
 66        0
@@ -26,6 +27,6 @@
 7D        66
 7E        0
 7F        6
-80        9
+80        FFFFFFF7
 81        F
 82        2

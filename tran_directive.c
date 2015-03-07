@@ -20,6 +20,7 @@ void add_entry(char *label);
 void add_extern(char *label);
 int get_from_mllist(char *label);
 void print_error(char *err);
+int twos_complement_neg(int pos);
 
 typedef struct genlist{
     char *label;
@@ -140,7 +141,12 @@ int as_dataent(char *line)
     int i = 0;
     while (line[i] != '\0' && i < 11) {
         int num;
-        if (line[i] != '\0' && isdigit(line[i])) {
+        int mult = 1;
+        if (line[i] != '\0' && (isdigit(line[i]) || line[i] == '-')) {
+			if(line[i] == '-'){
+				mult *= -1;
+				i++;
+			}
             num = line[i] - '0';
             i++;
             while (line[i] != ',' && line[i] != '\0' && isdigit(line[i])) {
@@ -148,6 +154,9 @@ int as_dataent(char *line)
                 num += line[i] - '0';
                 i++;
             }
+            if(mult < 0){
+				num = twos_complement_neg(num);
+			}
         } else {
         	print_error("Directive Error - .data directive can only include integers");
         }
