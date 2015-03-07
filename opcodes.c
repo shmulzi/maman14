@@ -11,12 +11,22 @@ struct oclist
 	char *code;
 	int numOfParams;
 	int val;
+	int leg_sop[4];
+	int leg_dop[4];
 	struct oclist *next;
 };
 
 struct oclist *opcodes;
 
-struct oclist *addOpcode(char *code, int numOfParams, int val, struct oclist *ocl)
+void arrcpy(int srcarr[4], int *dstarr[4])
+{
+	int i;
+	for(i = 0; i < sizeof(srcarr); i++){
+		dstarr[i] = srcarr[i];
+	}
+}
+
+struct oclist *addOpcode(char *code, int numOfParams, int val, int leg_sop[4], int leg_dop[4], struct oclist *ocl)
 {
 	if(ocl == NULL)
 	{
@@ -24,9 +34,11 @@ struct oclist *addOpcode(char *code, int numOfParams, int val, struct oclist *oc
 		ocl->code = code;
 		ocl->numOfParams = numOfParams;
 		ocl->val = val;
+		arrcpy(leg_sop, ocl->leg_sop);
+		arrcpy(leg_dop, ocl->leg_dop);
 		ocl->next = NULL;
 	} else {
-		ocl->next = addOpcode(code, numOfParams, val, ocl->next);
+		ocl->next = addOpcode(code, numOfParams, val, leg_sop, leg_dop, ocl->next);
 	}
 	return ocl;
 }
@@ -64,22 +76,24 @@ struct oclist *getOpcodeByCode(char *code)
 
 void populateOclist()
 {
-	opcodes = addOpcode("mov", 2, OPCODE_MOV, opcodes);
-	opcodes = addOpcode("cmp", 2, OPCODE_CMP, opcodes);
-	opcodes = addOpcode("add", 2, OPCODE_ADD, opcodes);
-	opcodes = addOpcode("sub", 2, OPCODE_SUB, opcodes);
-	opcodes = addOpcode("not", 1, OPCODE_NOT, opcodes);
-	opcodes = addOpcode("clr", 1, OPCODE_CLR, opcodes);
-	opcodes = addOpcode("lea", 2, OPCODE_LEA, opcodes);
-	opcodes = addOpcode("inc", 1, OPCODE_INC, opcodes);
-	opcodes = addOpcode("dec", 1, OPCODE_DEC, opcodes);
-	opcodes = addOpcode("jmp", 1, OPCODE_JMP, opcodes);
-	opcodes = addOpcode("bne", 1, OPCODE_BNE, opcodes);
-	opcodes = addOpcode("red", 1, OPCODE_RED, opcodes);
-	opcodes = addOpcode("prn", 1, OPCODE_PRN, opcodes);
-	opcodes = addOpcode("jsr", 1, OPCODE_JSR, opcodes);
-	opcodes = addOpcode("rts", 0, OPCODE_RTS, opcodes);
-	opcodes = addOpcode("stop", 0, OPCODE_STOP, opcodes);
+	int leg_dop[4] = {0,1,2,3};
+	int leg_sop[4] = {0,1,2,3};
+	opcodes = addOpcode("mov", 2, OPCODE_MOV, leg_sop, leg_dop, opcodes);
+	opcodes = addOpcode("cmp", 2, OPCODE_CMP, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("add", 2, OPCODE_ADD, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("sub", 2, OPCODE_SUB, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("not", 1, OPCODE_NOT, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("clr", 1, OPCODE_CLR, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("lea", 2, OPCODE_LEA, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("inc", 1, OPCODE_INC, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("dec", 1, OPCODE_DEC, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("jmp", 1, OPCODE_JMP, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("bne", 1, OPCODE_BNE, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("red", 1, OPCODE_RED, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("prn", 1, OPCODE_PRN, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("jsr", 1, OPCODE_JSR, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("rts", 0, OPCODE_RTS, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("stop", 0, OPCODE_STOP, leg_sop, leg_dop,  opcodes);
 	
 }
 
