@@ -81,9 +81,14 @@ struct datalist *dl_append(int num, struct datalist *dl)
 int assemble_dir(char *line) 
 {
     
-    int f_address = -1;
-    char *entry_word = "";
-    int i = 0;
+    int f_address;
+    char *entry_word;
+    int i;
+    int entry_type;
+
+    f_address = -1;
+    entry_word = "";
+    i = 0;
 
 	while (line[i] == ' ') {
         i++;
@@ -97,7 +102,7 @@ int assemble_dir(char *line)
         i++;
     }
     line = rm_from_left(line,i);
-    int entry_type = identify_dir(entry_word);
+    entry_type = identify_dir(entry_word);
     if (entry_type == DIR_DATA) {
         f_address = as_dataent(line);
     } else if (entry_type == DIR_STRING) {
@@ -160,13 +165,18 @@ int as_dataent(char *line)
 
 int as_stringent(char *line)
 {
-    int f_address = -1;
-    int i = 1; /*skipping one "*/
+	int c;
+    int f_address;
+    int i; /*skipping one "*/
+
+    f_address = -1;
+    i = 1;
+
     while(line[i] != '"'){
     	if(line[i] == EOF || line[i] == '\n'){
     		print_error("Directive Error - .string directive must end with quotation marks");
     	}
-        int c = line[i];
+        c = line[i];
         if(f_address == -1){
             f_address = add_to_assembled_list(c);
         } else {
@@ -208,10 +218,9 @@ void update_externs()
 
 void print_entry_list(char *fn)
 {
-	
+	generic_list *ptr;
 	print_to_ent_file(fn, entry_list);
 	printf("--- List of Entries:\n");
-	generic_list *ptr;
 	for(ptr = entry_list; ptr != NULL; ptr = ptr->next){
 		printf("Entry - %s           Address - %X\n",ptr->label,ptr->address);
 	}
@@ -220,9 +229,9 @@ void print_entry_list(char *fn)
 
 void print_extern_list(char *fn)
 {
+	generic_list *ptr;
 	print_to_ext_file(fn,extern_list);
 	printf("--- List of Externs:\n");
-	generic_list *ptr;
 	for(ptr = extern_list; ptr != NULL; ptr = ptr->next){
 		printf("Entry - %s           Address - %X\n",ptr->label,ptr->address);
 	}

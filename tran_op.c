@@ -73,6 +73,10 @@ int curr_op_addr;
 int assemble_op(char *line)
 {
 	/*local vars*/
+	struct oclist *opcode;
+	int op_so;
+	int op_do;
+	int r_word;
 	int era = 0;
 	op_param *s_operand = NULL;
 	op_param *d_operand = NULL;
@@ -89,7 +93,7 @@ int assemble_op(char *line)
 		opc	 = appendc(opc,line[i]);
 		i++;
 	}
-	struct oclist *opcode = getOpcodeByCode(opc);
+	opcode = getOpcodeByCode(opc);
 	if(opcode != NULL){
 		line = rm_from_left(line,i);
 		i = 0;
@@ -102,8 +106,9 @@ int assemble_op(char *line)
 	
 	/*2. Identify if parameters are needed and their types*/
 	if(opcode->numOfParams == 1){
+		char *param_word;
+		param_word = "";
 		group = 1;
-		char *param_word = "";
 		while(line[i] != '\0'){
 			param_word = appendc(param_word,line[i]);
 			i++;
@@ -114,9 +119,9 @@ int assemble_op(char *line)
 			print_error("Op Error - Destination operand using illegal delivery method");
 		}
 	} else if(opcode->numOfParams == 2){
-		group = 2;
 		char *s_param_word = "";
 		char *d_param_word = "";
+		group = 2;
 		if(line[i] == '~'){
 			while(line[i] != ')'){
 				s_param_word = appendc(s_param_word,line[i]);
@@ -159,15 +164,15 @@ int assemble_op(char *line)
 	}
 	
 	/*add op to main counter*/
-	int op_so = 0;
-	int op_do = 0;
+	op_so = 0;
+	op_do = 0;
 	if(s_operand != NULL){
 		op_so = s_operand->op_method;
 	}
 	if(d_operand != NULL){
 		op_do = d_operand->op_method;
 	}
-	int r_word = gen_as_op(group,opcode->val,op_so,op_do,era);
+	r_word = gen_as_op(group,opcode->val,op_so,op_do,era);
 	printf("r_word = %X\n",r_word);
 	curr_op_addr = opcode_address = add_to_assembled_list(r_word);
 	
@@ -212,10 +217,11 @@ int assemble_op(char *line)
 
 op_param *identify_param(char *param_word)
 {
+	int era;
+	int i;
 	op_param *result = opp_alloc();
 	result->op_method = -1;
-	int era;
-	int i = 0;
+	i = 0;
 	while(param_word[i] == ' ') { i++; }
 	if(param_word[i] == '#'){									
 		result->op_method = OP_METH_INSTANT;
@@ -279,16 +285,21 @@ int get_r_addr(char *name)
 	return result;
 }
 
+int twos_complement_neg(int pos)
+{
+	return ~pos+1;
+}
+
 int assemble_param(op_param *p, int era, int r_dir_side)
 {
-	printf("assemble_param p->param = %s, p->op_method = %d\n", p->param, p->op_method);
 	int result = -1;
+	printf("assemble_param p->param = %s, p->op_method = %d\n", p->param, p->op_method);
 	if(p->op_method == OP_METH_INSTANT){
-		printf("op meth instant\n");
 		char *ptr = p->param;
 		int num;
 		int i = 0;
 		int mult = 1;
+		printf("op meth instant\n");
 		i++; /*skip #*/
 		if(ptr[i] == '-'){
 			mult *= -1;
@@ -317,8 +328,8 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 		printf("op meth dist\n");
 		result = (calc_dist(p->param, curr_op_addr) << 2) | era;
 	} else if(p->op_method == OP_METH_R_DIRECT) {
-		printf("op meth r direct\n");
 		int r_addr = get_r_addr(p->param);
+		printf("op meth r direct\n");
 		if(r_dir_side == R_DIR_SOURCE){
 			r_addr = r_addr << 7;
 		} else if (r_dir_side == R_DIR_DEST){
@@ -331,13 +342,10 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 	return result;
 }
 
-int twos_complement_neg(int pos)
-{
-	return ~pos+1;
-}
-
 int calc_dist(char *dist_param, int opcode_address)
 {
+	int lbl_one_addr;
+	int lbl_two_addr;
 	int result = -1;
 	char *label_one = "";
 	char *label_two = "";
@@ -356,8 +364,8 @@ int calc_dist(char *dist_param, int opcode_address)
 		}
 		i++;
 	}
-	int lbl_one_addr = get_from_mllist(label_one);
-	int lbl_two_addr = get_from_mllist(label_two);
+	lbl_one_addr = get_from_mllist(label_one);
+	lbl_two_addr = get_from_mllist(label_two);
 	printf("in dist, '%s' = %X, '%s' = %X, curr_op_addr = %X\n",label_one,lbl_one_addr,label_two,lbl_two_addr,curr_op_addr);
 	result = get_max_dist(lbl_one_addr,lbl_two_addr,opcode_address);
 	return result << 2;
@@ -377,13 +385,11 @@ int get_max_dist(int addr_one, int addr_two, int op_addr)
 	int dist_one_two = abs(addr_one-addr_two);
 	int dist_op_one = abs(addr_one-op_addr);
 	int dist_op_two = abs(addr_two-op_addr);
-	printf("dist_one_two = %X, dist_op_one = %X, dist_op_two = %X\n", dist_one_two,dist_op_one,dist_op_two);
 	return max(dist_one_two,dist_op_one,dist_op_two);
 }
 
 int max(int a, int b, int c)
 {
-	printf("in max - a = %X, b = %X, c = %X\n",a,b,c);
 	int max = a;
 	if(b > a){
 		max = b;
@@ -391,7 +397,6 @@ int max(int a, int b, int c)
 	if(c > a){
 		max = c;
 	}
-	printf("in max - a = %X, b = %X, c = %X, max = %X\n",a,b,c,max);
 	return max;
 }
 

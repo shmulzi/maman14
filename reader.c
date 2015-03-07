@@ -16,8 +16,9 @@ int assemble_op(char *line);
 
 char *freadline(FILE *f)
 {
-	char *line = "";
+	char *line;
 	char c;
+	line = "";
 	while((c = fgetc(f)) != '\n' && c != EOF){
 		line = appendc(line,c);
 	}
@@ -29,11 +30,16 @@ char *freadline(FILE *f)
 
 int delegate_line(char *line)
 {
-	int r = 0;
+	int r;
+	char *label;
+	int is_dir;
+	int label_addr;
+	int i;
+	r = 0;
 	printf("delegating line - %s\n",line);
-	char *label = "";
-	int is_dir = 0;
-	int label_addr = 0;
+	label = "";
+	is_dir = 0;
+	label_addr = 0;
 	if(strlen(line) > 0){
 		if(line[0] == ';'){
 			/*This is a comment, go to next line*/
@@ -43,7 +49,7 @@ int delegate_line(char *line)
 			line = rm_from_right(line,strlen(line)-1);
 			r = 1;
 		}
-		int i = 0;
+		i = 0;
 		while(line[i] != '\0'){
 			if(line[i] == ':'){
 				label = slice(line,0,i-1);

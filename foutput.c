@@ -17,12 +17,15 @@ typedef struct genlist{
 
 void print_to_obj_file(char *fn, assembledlist *al)
 {
-	char *file_ext = ".obj";
-	char *full_fn = malloc(strlen(fn) + strlen(file_ext) + 1);
+	char *file_ext;
+	char *full_fn;
+	FILE *f;
+	assembledlist *ptr;
+	file_ext = ".obj";
+	full_fn = malloc(strlen(fn) + strlen(file_ext) + 1);
 	strcpy(full_fn,fn);
 	strcat(full_fn,file_ext);
-	FILE *f = fopen(full_fn,"w");
-	assembledlist *ptr;
+	f = fopen(full_fn,"w");
 	for(ptr = al; ptr != NULL; ptr = ptr->next){
 		fprintf(f,"%X        %X\n",ptr->address,ptr->word);
 	}
@@ -30,12 +33,15 @@ void print_to_obj_file(char *fn, assembledlist *al)
 
 void print_to_ent_file(char *fn, generic_list *ent_list)
 {
-	char *file_ext = ".ent";
-	char *full_fn = malloc(strlen(fn) + strlen(file_ext) + 1);
+	char *file_ext;
+	char *full_fn;
+	FILE *f;
+	generic_list *ptr;
+	file_ext = ".ent";
+	full_fn = malloc(strlen(fn) + strlen(file_ext) + 1);
 	strcpy(full_fn,fn);
 	strcat(full_fn,file_ext);
-	FILE *f = fopen(full_fn,"w");
-	generic_list *ptr;
+	f = fopen(full_fn,"w");
 	for(ptr = ent_list; ptr != NULL; ptr = ptr->next){
 		fprintf(f,"%s        %X\n",ptr->label,ptr->address);
 	}
@@ -43,12 +49,15 @@ void print_to_ent_file(char *fn, generic_list *ent_list)
 
 void print_to_ext_file(char *fn, generic_list *ext_list)
 {
-	char *file_ext = ".ext";
-	char *full_fn = malloc(strlen(fn) + strlen(file_ext) + 1);
+	char *file_ext;
+	char *full_fn;
+	FILE *f;
+	generic_list *ptr;
+	file_ext = ".ext";
+	full_fn = malloc(strlen(fn) + strlen(file_ext) + 1);
 	strcpy(full_fn,fn);
 	strcat(full_fn,file_ext);
-	FILE *f = fopen(full_fn,"w");
-	generic_list *ptr;
+	f = fopen(full_fn,"w");
 	for(ptr = ext_list; ptr != NULL; ptr = ptr->next){
 		fprintf(f,"%s        %X\n",ptr->label,ptr->address);
 	}

@@ -35,8 +35,10 @@ void add_to_mllist(char *label, int address)
 
 int get_from_mllist(char *label)
 {
-	int result = 0;
-	label_list *ptr = main_llist;
+	int result;
+	label_list *ptr;
+	result = 0;
+	ptr = main_llist;
 	for(; ptr != NULL;ptr = ptr->next){
 		if(strcmp(ptr->label,label) == 0){
 			result = ptr->address;
@@ -47,8 +49,8 @@ int get_from_mllist(char *label)
 
 void print_mllist()
 {
-	printf("--- List of Labels:\n");
 	label_list *ptr;
+	printf("--- List of Labels:\n");
 	for(ptr = main_llist; ptr != NULL; ptr = ptr->next){
 		printf("label name - %s            label address - %X\n",ptr->label,ptr->address);
 	}
