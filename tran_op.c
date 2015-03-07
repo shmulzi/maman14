@@ -12,14 +12,17 @@
 #define R_DIR_DEST 1
 #define R_DIR_NONE 2
 
-#define ADDR_R1 0
-#define ADDR_R2 1
-#define ADDR_R3 2
-#define ADDR_R4 3
-#define ADDR_R5 4
-#define ADDR_R6 5
-#define ADDR_R7 6
-#define ADDR_R8 7
+#define OP_TYPE_SRC 0
+#define OP_TYPE_DEST 1
+
+#define ADDR_R0 0
+#define ADDR_R1 1
+#define ADDR_R2 2
+#define ADDR_R3 3
+#define ADDR_R4 4
+#define ADDR_R5 5
+#define ADDR_R6 6
+#define ADDR_R7 7
 
 typedef struct {
 	char *param;
@@ -63,6 +66,7 @@ int is_dist_labels_addressed(char *dist_param);
 int calc_dist(char *dist_param, int opcode_address);
 void add_to_distpr_list(char *dist_param, int opcode_address, int address);
 void print_error(char *err);
+int is_method_permitted(struct oclist *ocitem, int meth, int op_type);
 
 int curr_op_addr;
 
@@ -106,6 +110,9 @@ int assemble_op(char *line)
 		}
 		s_operand = NULL;
 		d_operand = identify_param(param_word);
+		if(is_method_permitted(opcode,d_operand->op_method,OP_TYPE_DEST) == 0){
+			print_error("Op Error - Destination operand using illegal delivery method");
+		}
 	} else if(opcode->numOfParams == 2){
 		group = 2;
 		char *s_param_word = "";
@@ -125,6 +132,9 @@ int assemble_op(char *line)
 			i++;
 		}
 		s_operand = identify_param(s_param_word);
+		if(is_method_permitted(opcode,s_operand->op_method,OP_TYPE_SRC) == 0){
+			print_error("Op Error - Source operand using illegal delivery method");
+		}
 		if(line[i] == '~'){
 			while(line[i] != ')'){
 				d_param_word = appendc(d_param_word,line[i]);
@@ -140,6 +150,9 @@ int assemble_op(char *line)
 			i++;
 		}
 		d_operand = identify_param(d_param_word);
+		if(is_method_permitted(opcode,d_operand->op_method,OP_TYPE_DEST) == 0){
+			print_error("Op Error - Destination operand using illegal delivery method");
+		}
 	} else {
 		group = 0;
 		s_operand = d_operand = NULL;
@@ -202,11 +215,13 @@ op_param *identify_param(char *param_word)
 	op_param *result = opp_alloc();
 	result->op_method = -1;
 	int era;
-	if(param_word[0] == '#'){									
+	int i = 0;
+	while(param_word[i] == ' ') { i++; }
+	if(param_word[i] == '#'){									
 		result->op_method = OP_METH_INSTANT;
-	} else if (param_word[0] == '~'){										   					
+	} else if (param_word[i] == '~'){										   					
 		result->op_method = OP_METH_DIST;
-	} else if (param_word[0] == 'r'){	
+	} else if (param_word[i] == 'r'){	
 		int r_addr;
 		if((r_addr = get_r_addr(param_word)) != -1){
 			result->op_method = OP_METH_R_DIRECT;
@@ -245,28 +260,21 @@ int get_r_addr(char *name)
 {
 	int result = -1;
 	if(strcmp(name,"r0") == 0){
+		result = ADDR_R0;
+	} else if(strcmp(name,"r1") == 0){
 		result = ADDR_R1;
-	}
-	if(strcmp(name,"r1") == 0){
+	} else if(strcmp(name,"r2") == 0){
 		result = ADDR_R2;
-	}
-	if(strcmp(name,"r2") == 0){
+	} else if(strcmp(name,"r3") == 0){
 		result = ADDR_R3;
-	}
-	if(strcmp(name,"r3") == 0){
+	} else if(strcmp(name,"r4") == 0){
 		result = ADDR_R4;
-	}
-	if(strcmp(name,"r4") == 0){
+	} else if(strcmp(name,"r5") == 0){
 		result = ADDR_R5;
-	}
-	if(strcmp(name,"r5") == 0){
+	} else if(strcmp(name,"r6") == 0){
 		result = ADDR_R6;
-	}
-	if(strcmp(name,"r6") == 0){
+	} else if(strcmp(name,"r7") == 0){
 		result = ADDR_R7;
-	}
-	if(strcmp(name,"r7") == 0){
-		result = ADDR_R8;
 	}
 	return result;
 }
@@ -280,6 +288,11 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 		char *ptr = p->param;
 		int num;
 		int i = 0;
+		int mult = 1;
+		i++; /*skip #*/
+		if(ptr[i] == '-'){
+			mult *= -1;
+		}
 		while(ptr[i] != '\0'){
 			if (isdigit(ptr[i])){
 				num = ptr[i] - '0';
@@ -291,6 +304,9 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 				}
 			}
 			i++;
+		}
+		if(mult < 0){
+			num = twos_complement_neg(num);
 		}
 		num = num << 2;
 		result = num | era;
@@ -315,6 +331,10 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 	return result;
 }
 
+int twos_complement_neg(int pos)
+{
+	return ~pos+1;
+}
 
 int calc_dist(char *dist_param, int opcode_address)
 {

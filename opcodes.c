@@ -4,6 +4,17 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#define DM_PERM 1
+#define DM_NOT 0
+
+#define OP_METH_INSTANT 0
+#define OP_METH_DIRECT 1
+#define OP_METH_DIST 2
+#define OP_METH_R_DIRECT 3
+
+#define OP_TYPE_SRC 0
+#define OP_TYPE_DEST 1
+
 struct oclist *oclistAlloc(void);
 
 struct oclist
@@ -11,22 +22,32 @@ struct oclist
 	char *code;
 	int numOfParams;
 	int val;
-	int leg_sop[4];
-	int leg_dop[4];
+	int leg_sop;
+	int leg_dop;
 	struct oclist *next;
 };
 
 struct oclist *opcodes;
 
-void arrcpy(int srcarr[4], int *dstarr[4])
+int permit_switch(int instant, int direct, int distance, int r_direct)
 {
-	int i;
-	for(i = 0; i < sizeof(srcarr); i++){
-		dstarr[i] = srcarr[i];
-	}
+	int permission = instant | (direct << OP_METH_DIRECT) | (distance << OP_METH_DIST) | (r_direct << OP_METH_R_DIRECT);
+	return permission;
 }
 
-struct oclist *addOpcode(char *code, int numOfParams, int val, int leg_sop[4], int leg_dop[4], struct oclist *ocl)
+int is_method_permitted(struct oclist *ocitem, int meth, int op_type)
+{
+	int mask = 1 << meth;
+	int result = -1;
+	if(op_type == OP_TYPE_DEST){
+		result = ocitem->leg_dop & mask;
+	} else if (op_type == OP_TYPE_SRC) {
+		result = ocitem->leg_sop & mask;
+	}
+	return result; 
+}
+
+struct oclist *addOpcode(char *code, int numOfParams, int val, int leg_sop, int leg_dop, struct oclist *ocl)
 {
 	if(ocl == NULL)
 	{
@@ -34,8 +55,8 @@ struct oclist *addOpcode(char *code, int numOfParams, int val, int leg_sop[4], i
 		ocl->code = code;
 		ocl->numOfParams = numOfParams;
 		ocl->val = val;
-		arrcpy(leg_sop, ocl->leg_sop);
-		arrcpy(leg_dop, ocl->leg_dop);
+		ocl->leg_sop = leg_sop;
+		ocl->leg_dop = leg_dop;
 		ocl->next = NULL;
 	} else {
 		ocl->next = addOpcode(code, numOfParams, val, leg_sop, leg_dop, ocl->next);
@@ -46,11 +67,10 @@ struct oclist *addOpcode(char *code, int numOfParams, int val, int leg_sop[4], i
 void printOpcodeList(){
 	struct oclist *ptr;
 	ptr = opcodes;
-	printf("\nstarting print: \n");
-	printf("\ncode:	numOfParams:	val: \n");
+	printf("\nPrinting OpCode List: \n");
 	for(; ptr != NULL; ptr = ptr->next)
 	{
-		printf("%s	%d	%d\n", ptr->code, ptr->numOfParams, ptr->val);
+		printf("ncode: %s numofparams: %d val: %d allowed d_op: %d allowed s_op: %d\n", ptr->code, ptr->numOfParams, ptr->val, ptr->leg_dop, ptr->leg_sop);
 	}
 }
 
@@ -76,24 +96,22 @@ struct oclist *getOpcodeByCode(char *code)
 
 void populateOclist()
 {
-	int leg_dop[4] = {0,1,2,3};
-	int leg_sop[4] = {0,1,2,3};
-	opcodes = addOpcode("mov", 2, OPCODE_MOV, leg_sop, leg_dop, opcodes);
-	opcodes = addOpcode("cmp", 2, OPCODE_CMP, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("add", 2, OPCODE_ADD, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("sub", 2, OPCODE_SUB, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("not", 1, OPCODE_NOT, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("clr", 1, OPCODE_CLR, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("lea", 2, OPCODE_LEA, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("inc", 1, OPCODE_INC, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("dec", 1, OPCODE_DEC, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("jmp", 1, OPCODE_JMP, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("bne", 1, OPCODE_BNE, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("red", 1, OPCODE_RED, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("prn", 1, OPCODE_PRN, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("jsr", 1, OPCODE_JSR, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("rts", 0, OPCODE_RTS, leg_sop, leg_dop,  opcodes);
-	opcodes = addOpcode("stop", 0, OPCODE_STOP, leg_sop, leg_dop,  opcodes);
+	opcodes = addOpcode("mov", 2, OPCODE_MOV, permit_switch(DM_PERM,DM_PERM,DM_PERM,DM_PERM), permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_PERM), opcodes);
+	opcodes = addOpcode("cmp", 2, OPCODE_CMP, permit_switch(DM_PERM,DM_PERM,DM_PERM,DM_PERM), permit_switch(DM_PERM,DM_PERM,DM_NOT,DM_PERM),  opcodes);
+	opcodes = addOpcode("add", 2, OPCODE_ADD, permit_switch(DM_PERM,DM_PERM,DM_PERM,DM_PERM), permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_PERM),  opcodes);
+	opcodes = addOpcode("sub", 2, OPCODE_SUB, permit_switch(DM_PERM,DM_PERM,DM_PERM,DM_PERM), permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_PERM),  opcodes);
+	opcodes = addOpcode("not", 1, OPCODE_NOT, 0, permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_PERM),  opcodes);
+	opcodes = addOpcode("clr", 1, OPCODE_CLR, 0, permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_PERM),  opcodes);
+	opcodes = addOpcode("lea", 2, OPCODE_LEA, permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_NOT), permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_PERM),  opcodes);
+	opcodes = addOpcode("inc", 1, OPCODE_INC, 0, permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_PERM),  opcodes);
+	opcodes = addOpcode("dec", 1, OPCODE_DEC, 0, permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_PERM),  opcodes);
+	opcodes = addOpcode("jmp", 1, OPCODE_JMP, 0, permit_switch(DM_NOT,DM_PERM,DM_PERM,DM_PERM),  opcodes);
+	opcodes = addOpcode("bne", 1, OPCODE_BNE, 0, permit_switch(DM_NOT,DM_PERM,DM_PERM,DM_PERM),  opcodes);
+	opcodes = addOpcode("red", 1, OPCODE_RED, 0, permit_switch(DM_NOT,DM_PERM,DM_PERM,DM_PERM),  opcodes);
+	opcodes = addOpcode("prn", 1, OPCODE_PRN, 0, permit_switch(DM_PERM,DM_PERM,DM_PERM,DM_PERM),  opcodes);
+	opcodes = addOpcode("jsr", 1, OPCODE_JSR, 0, permit_switch(DM_NOT,DM_PERM,DM_NOT,DM_NOT),  opcodes);
+	opcodes = addOpcode("rts", 0, OPCODE_RTS, 0, 0,  opcodes);
+	opcodes = addOpcode("stop", 0, OPCODE_STOP, 0, 0,  opcodes);
 	
 }
 

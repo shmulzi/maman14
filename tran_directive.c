@@ -27,6 +27,9 @@ typedef struct genlist{
     struct genlist *next;
 } generic_list;
 
+void print_to_ent_file(char *fn, generic_list *ent_list);
+void print_to_ext_file(char *fn, generic_list *ext_list);
+
 generic_list *entry_list;
 generic_list *extern_list;
 
@@ -203,8 +206,10 @@ void update_externs()
 	}
 }
 
-void print_entry_list()
+void print_entry_list(char *fn)
 {
+	
+	print_to_ent_file(fn, entry_list);
 	printf("--- List of Entries:\n");
 	generic_list *ptr;
 	for(ptr = entry_list; ptr != NULL; ptr = ptr->next){
@@ -213,8 +218,9 @@ void print_entry_list()
 	printf("--- End list of Entries.\n");
 }
 
-void print_extern_list()
+void print_extern_list(char *fn)
 {
+	print_to_ext_file(fn,extern_list);
 	printf("--- List of Externs:\n");
 	generic_list *ptr;
 	for(ptr = extern_list; ptr != NULL; ptr = ptr->next){

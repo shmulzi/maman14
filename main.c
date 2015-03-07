@@ -12,6 +12,7 @@ void print_mllist();
 void print_entry_list();
 void print_extern_list();
 void update_paramter_label_addresses();
+void printOpcodeList();
 
 int curr_linenum;
 int main_address;
@@ -23,6 +24,12 @@ typedef struct asList{
 	int address;
 	struct asList *next;
 } assembledlist;
+
+typedef struct genlist{
+    char *label;
+    int address;
+    struct genlist *next;
+} generic_list;
 
 void print_to_obj_file(char *fn, assembledlist *al);
 
@@ -110,6 +117,7 @@ int main(int argc, char *argv[])
 	update_paramter_label_addresses();
 
 	print_to_obj_file(argv[1],main_mem);
+	
 	printf("\n--->Begin Report of Data Collected - \n\n");
 
 	if(main_mem != NULL){
@@ -117,10 +125,12 @@ int main(int argc, char *argv[])
 		printf("\n");
 		print_main_al();
 		printf("\n");
-		print_entry_list();
+		print_entry_list(argv[1]);
 		printf("\n");
-		print_extern_list();
+		print_extern_list(argv[1]);
 	}
 	printf("\n--->Finished Report of Data Collected\n\n");
+	printOpcodeList();
+	printf("\n");
 	return 0;
 }
