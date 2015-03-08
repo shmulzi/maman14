@@ -13,6 +13,7 @@ void print_entry_list();
 void print_extern_list();
 void update_paramter_label_addresses();
 void printOpcodeList();
+void print_lbpr();
 
 int curr_linenum;
 int main_address;
@@ -132,5 +133,6 @@ int main(int argc, char *argv[])
 	printf("\n--->Finished Report of Data Collected\n\n");
 	printOpcodeList();
 	printf("\n");
+	print_lbpr();
 	return 0;
 }

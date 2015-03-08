@@ -114,7 +114,7 @@ int assemble_op(char *line)
 			i++;
 		}
 		s_operand = NULL;
-		d_operand = identify_param(param_word);
+		d_operand = identify_param(param_word);	
 		if(is_method_permitted(opcode,d_operand->op_method,OP_TYPE_DEST) == 0){
 			print_error("Op Error - Destination operand using illegal delivery method");
 		}
@@ -137,6 +137,7 @@ int assemble_op(char *line)
 			i++;
 		}
 		s_operand = identify_param(s_param_word);
+		while(line[i] == ' ') { i++; }
 		if(is_method_permitted(opcode,s_operand->op_method,OP_TYPE_SRC) == 0){
 			print_error("Op Error - Source operand using illegal delivery method");
 		}
@@ -222,7 +223,9 @@ op_param *identify_param(char *param_word)
 	op_param *result = opp_alloc();
 	result->op_method = -1;
 	i = 0;
+	
 	while(param_word[i] == ' ') { i++; }
+	
 	if(param_word[i] == '#'){									
 		result->op_method = OP_METH_INSTANT;
 	} else if (param_word[i] == '~'){										   					
@@ -323,7 +326,7 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 		result = num | era;
 	} else if(p->op_method == OP_METH_DIRECT) {
 		result = get_from_mllist(p->param);
-		printf("op meth direct\n");
+		printf("op meth direct and p->param is: %s\n",p->param);
 	} else if(p->op_method == OP_METH_DIST){
 		printf("op meth dist\n");
 		result = (calc_dist(p->param, curr_op_addr) << 2) | era;
@@ -366,7 +369,6 @@ int calc_dist(char *dist_param, int opcode_address)
 	}
 	lbl_one_addr = get_from_mllist(label_one);
 	lbl_two_addr = get_from_mllist(label_two);
-	printf("in dist, '%s' = %X, '%s' = %X, curr_op_addr = %X\n",label_one,lbl_one_addr,label_two,lbl_two_addr,curr_op_addr);
 	result = get_max_dist(lbl_one_addr,lbl_two_addr,opcode_address);
 	return result << 2;
 }

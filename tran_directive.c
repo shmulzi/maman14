@@ -29,7 +29,7 @@ typedef struct genlist{
 } generic_list;
 
 void print_to_ent_file(char *fn, generic_list *ent_list);
-void print_to_ext_file(char *fn, generic_list *ext_list);
+void print_to_ext_file(char *fn);
 
 generic_list *entry_list;
 generic_list *extern_list;
@@ -52,6 +52,23 @@ generic_list *gnl_append(char *label, int address, generic_list *gnl)
     return gnl;
 }
 
+int isingnl(char *label, generic_list *gnl)
+{
+	generic_list *ptr;
+	int result = -1;
+	for(ptr = gnl; ptr != NULL; ptr = ptr->next){
+		printf("comparing label = '%s' to ptr->label = '%s'\n", label,ptr->label);
+		if(strcmp(ptr->label,label) == 0){
+			result = 0;
+		}
+	}
+	return result;
+}
+
+int isextern(char *label)
+{
+	return isingnl(label,extern_list);
+}
 
 /*datalist - a linked list for numbers that are gathered with a '.data' entry word*/
 struct datalist {
@@ -239,7 +256,7 @@ void print_entry_list(char *fn)
 void print_extern_list(char *fn)
 {
 	generic_list *ptr;
-	print_to_ext_file(fn,extern_list);
+	print_to_ext_file(fn);
 	printf("--- List of Externs:\n");
 	for(ptr = extern_list; ptr != NULL; ptr = ptr->next){
 		printf("Entry - %s           Address - %X\n",ptr->label,ptr->address);

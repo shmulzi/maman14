@@ -90,10 +90,25 @@ void update_dist_addresses()
 	}
 }
 
+lbpr_list *get_main_lbpr_list()
+{
+	return main_lbpr_list;
+}
+
 void update_paramter_label_addresses()
 {
 	update_label_addresses();
 	update_dist_addresses();
 	update_entries();
 	update_externs();
+}
+
+void print_lbpr()
+{
+	lbpr_list *ptr;
+	printf("--- List of LBPR:\n");
+	for(ptr = main_lbpr_list; ptr != NULL; ptr = ptr->next){
+		printf("lbpr - %s           Address - %X\n",ptr->label,ptr->address);
+	}
+	printf("--- End list of LBPR.\n");
 }

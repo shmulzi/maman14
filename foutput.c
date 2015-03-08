@@ -15,6 +15,15 @@ typedef struct genlist{
     struct genlist *next;
 } generic_list;
 
+typedef struct lbprl{
+	int address;
+	char *label;
+	struct lbprl *next;
+} lbpr_list;
+
+int isextern(char *label);
+lbpr_list *get_main_lbpr_list();
+
 void print_to_obj_file(char *fn, assembledlist *al)
 {
 	char *file_ext;
@@ -48,18 +57,21 @@ void print_to_ent_file(char *fn, generic_list *ent_list)
 	}
 }
 
-void print_to_ext_file(char *fn, generic_list *ext_list)
+void print_to_ext_file(char *fn)
 {
 	char *file_ext;
 	char *full_fn;
 	FILE *f;
-	generic_list *ptr;
+	lbpr_list *ptr;
 	file_ext = ".ext";
 	full_fn = malloc(strlen(fn) + strlen(file_ext) + 1);
 	strcpy(full_fn,fn);
 	strcat(full_fn,file_ext);
 	f = fopen(full_fn,"w");
-	for(ptr = ext_list; ptr != NULL; ptr = ptr->next){
-		fprintf(f,"%s        %X\n",ptr->label,ptr->address);
+	for(ptr = get_main_lbpr_list(); ptr != NULL; ptr = ptr->next){
+		if(isextern(ptr->label) == 0){
+			printf("IT IS DECIDED - %s        %X\n",ptr->label,ptr->address);
+			fprintf(f,"%s        %X\n",ptr->label,ptr->address);
+		}
 	}
 }
