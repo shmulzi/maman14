@@ -2,6 +2,14 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define MAX_LABEL_SIZE 30
+
+/*main.c*/
+void print_error(char *err);
+
+/*opcodes.c*/
+int isopcode(char *code);
+
 typedef struct llist{
 	char *label;
 	int address;
@@ -30,7 +38,13 @@ label_list *ll_append(char *label, int address, label_list *ll)
 
 void add_to_mllist(char *label, int address)
 {
-	main_llist = ll_append(label,address,main_llist);
+	if(strlen(label) > MAX_LABEL_SIZE){
+		print_error("Label Error - Label size cannot be above 30 characters");
+	} else if(!isopcode(label)) {
+		print_error("Label Error - Label cannot have same name as opcode");
+	} else {
+		main_llist = ll_append(label,address,main_llist);
+	}
 }
 
 int get_from_mllist(char *label)

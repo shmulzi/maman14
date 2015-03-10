@@ -9,17 +9,25 @@
 #define DIR_ENTRY 3
 #define DIR_EXTERN 4
 
-char *appendc(char *s, char c);
-char *rm_from_left(char *line, int indx);
+/*self*/
 int identify_dir(char *word);
 int as_dataent(char *line);
 int as_stringent(char *line);
-int add_to_assembled_list(int code);
-int get_from_mllist(char *label);
 void add_entry(char *label);
 void add_extern(char *label);
-int get_from_mllist(char *label);
+
+/*reader.c*/
+char *appendc(char *s, char c);
+char *rm_from_left(char *line, int indx);
+
+/*main.c*/
+int add_to_assembled_list(int code);
 void print_error(char *err);
+
+/*label.c*/
+int get_from_mllist(char *label);
+
+/*tran_op.c*/
 int twos_complement_neg(int pos);
 
 typedef struct genlist{
@@ -57,7 +65,6 @@ int isingnl(char *label, generic_list *gnl)
 	generic_list *ptr;
 	int result = -1;
 	for(ptr = gnl; ptr != NULL; ptr = ptr->next){
-		printf("comparing label = '%s' to ptr->label = '%s'\n", label,ptr->label);
 		if(strcmp(ptr->label,label) == 0){
 			result = 0;
 		}

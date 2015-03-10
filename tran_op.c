@@ -48,26 +48,37 @@ struct oclist
 	struct oclist *next;
 };
 
-
-struct oclist *getOpcodeByCode(char *code);
-char *appendc(char *s, char c);
+/*self*/
 int get_r_addr(char *name);
 int assemble_param(op_param *param, int era, int r_dir_side);
 int assemble_param_rdirect(op_param *source_p, op_param *dest_p, int era);
 int get_max_dist(int addr_one, int addr_two, int op_addr);
 int max(int a, int b, int c);
 int gen_as_op(int group, int opcode, int s_op, int d_op, int era);
-char *rm_from_left(char *line, int indx);
 op_param *identify_param(char *param_word);
-int add_to_assembled_list(int code);
-int get_from_mllist(char *label);
-void add_to_lbpr_list(int address, char *label);
 int is_dist_labels_addressed(char *dist_param);
 int calc_dist(char *dist_param, int opcode_address);
-void add_to_distpr_list(char *dist_param, int opcode_address, int address);
-void print_error(char *err);
+
+/*opcodes.c*/
+struct oclist *getOpcodeByCode(char *code);
 int is_method_permitted(struct oclist *ocitem, int meth, int op_type);
 
+/*main.c*/
+void print_error(char *err);
+int add_to_assembled_list(int code);
+
+/*reader.c*/
+char *appendc(char *s, char c);
+char *rm_from_left(char *line, int indx);
+
+/*label.c*/
+int get_from_mllist(char *label);
+
+/*second_pass.c*/
+void add_to_lbpr_list(int address, char *label);
+void add_to_distpr_list(char *dist_param, int opcode_address, int address);
+
+/*global params*/
 int curr_op_addr;
 
 int assemble_op(char *line)
@@ -174,7 +185,6 @@ int assemble_op(char *line)
 		op_do = d_operand->op_method;
 	}
 	r_word = gen_as_op(group,opcode->val,op_so,op_do,era);
-	printf("r_word = %X\n",r_word);
 	curr_op_addr = opcode_address = add_to_assembled_list(r_word);
 	
 	if(group == 2 && s_operand->op_method == OP_METH_R_DIRECT && d_operand->op_method == OP_METH_R_DIRECT){
@@ -187,7 +197,6 @@ int assemble_op(char *line)
 			} else {
 				int prm = assemble_param(s_operand,era, R_DIR_NONE);
 				if(s_operand->op_method == OP_METH_DIRECT && prm == 0){
-					/*inside the op_param you already have the label*/
 					add_to_lbpr_list(add_to_assembled_list(prm), s_operand->param);
 				} else if (s_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(s_operand->param) == 0){
 					add_to_distpr_list(s_operand->param,curr_op_addr,add_to_assembled_list(prm));
@@ -202,7 +211,6 @@ int assemble_op(char *line)
 			} else {
 				int prm = assemble_param(d_operand,era, R_DIR_NONE);
 				if(d_operand->op_method == OP_METH_DIRECT && prm == 0){
-					/*inside the op_param you already have the label*/
 					add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
 				} else if (d_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(d_operand->param) == 0){
 					add_to_distpr_list(d_operand->param,curr_op_addr,add_to_assembled_list(prm));
@@ -212,7 +220,6 @@ int assemble_op(char *line)
 			}
 		}
 	}
-	
 	return opcode_address;
 }
 
@@ -296,13 +303,11 @@ int twos_complement_neg(int pos)
 int assemble_param(op_param *p, int era, int r_dir_side)
 {
 	int result = -1;
-	printf("assemble_param p->param = %s, p->op_method = %d\n", p->param, p->op_method);
 	if(p->op_method == OP_METH_INSTANT){
 		char *ptr = p->param;
 		int num;
 		int i = 0;
 		int mult = 1;
-		printf("op meth instant\n");
 		i++; /*skip #*/
 		if(ptr[i] == '-'){
 			mult *= -1;
@@ -326,13 +331,10 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 		result = num | era;
 	} else if(p->op_method == OP_METH_DIRECT) {
 		result = get_from_mllist(p->param);
-		printf("op meth direct and p->param is: %s\n",p->param);
 	} else if(p->op_method == OP_METH_DIST){
-		printf("op meth dist\n");
 		result = (calc_dist(p->param, curr_op_addr) << 2) | era;
 	} else if(p->op_method == OP_METH_R_DIRECT) {
 		int r_addr = get_r_addr(p->param);
-		printf("op meth r direct\n");
 		if(r_dir_side == R_DIR_SOURCE){
 			r_addr = r_addr << 7;
 		} else if (r_dir_side == R_DIR_DEST){
@@ -404,7 +406,6 @@ int max(int a, int b, int c)
 
 int gen_as_op(int group, int opcode, int s_op, int d_op, int era)
 {
-	printf("generating opcode with group - %d, opcode - %d, s_op - %d, d_op - %d, era - %d\n", group, opcode, s_op, d_op, era);
 	group = group << 10;
 	opcode = opcode << 6;
 	s_op = s_op << 4;

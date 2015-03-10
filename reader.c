@@ -5,13 +5,24 @@
 
 #define MAX_LINE_LENGTH 80
 
+
+/*self*/
 char *appendc(char *s, char c);
 char *rm_from_left(char *line, int indx);
 char *rm_from_right(char *line, int indx);
-void add_to_mllist(char *label, int word);
 char *slice(char *s, int l_index, int r_index);
+
+/*label.c*/
+void add_to_mllist(char *label, int word);
+
+/*tran_directive.c*/
 int assemble_dir(char *line);
+
+/*tran_op.c*/
 int assemble_op(char *line);
+
+/*main.c*/
+void print_error(char *err);
 
 
 char *freadline(FILE *f)
@@ -25,6 +36,9 @@ char *freadline(FILE *f)
 	if(c == EOF){
 		line = appendc(line,c);
 	}
+	if(strlen(line) > MAX_LINE_LENGTH){
+		print_error("General Error - Line length cannot be higher that 80 characters");
+	}
 	return line;
 }
 
@@ -36,7 +50,6 @@ int delegate_line(char *line)
 	int label_addr;
 	int i;
 	r = 0;
-	printf("delegating line - %s\n",line);
 	label = "";
 	is_dir = 0;
 	label_addr = 0;
@@ -58,7 +71,6 @@ int delegate_line(char *line)
 				while(line[i] == ' '){ i++; }
 			}
 			if(line[i] == '.'){
-				printf("got in to assembling directive for line - %s\n",line);
 				label_addr = assemble_dir(line);
 				is_dir = 1;
 			}
@@ -72,7 +84,6 @@ int delegate_line(char *line)
 			add_to_mllist(label,label_addr);
 		}
 	}
-	printf("finished delgating line\n");
 	return r;
 }
 

@@ -3,10 +3,17 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+/*main.c*/
 void update_word_at_address(int address, int word);
+
+/*label.c*/
 int get_from_mllist(char *label);
+
+/*tran_directive.c*/
 void update_entries();
 void update_externs();
+
+/*tran_op.c*/
 int calc_dist(char *dist_param, int opcode_address);
 
 typedef struct lbprl{
@@ -85,7 +92,6 @@ void update_dist_addresses()
 	distpr_list *ptr;
 	for(ptr = main_distpr_list; ptr != NULL; ptr = ptr->next){
 		int dist = calc_dist(ptr->dist_param,ptr->opcode_address);
-		printf("Updating dist param - %s with opcode_address - %X and dist is - %d for address - %X\n",ptr->dist_param,ptr->opcode_address, dist,ptr->address);
 		update_word_at_address(ptr->address, dist);
 	}
 }

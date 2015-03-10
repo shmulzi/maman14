@@ -74,6 +74,22 @@ void printOpcodeList(){
 	}
 }
 
+int isopcode(char *code)
+{
+	struct oclist *ptr;
+	int result = -1;
+	if(opcodes != NULL){
+		for(ptr = opcodes; ptr != NULL; ptr = ptr->next){
+			if(strcmp(code, ptr->code) == 0){
+				result = 0;
+			}
+		}
+	} else {
+		printf("opcodes.c - opcodes table has failed to populate\n");
+	}
+	return result;
+}
+
 struct oclist *getOpcodeByCode(char *code)
 {
 	struct oclist *ptr;

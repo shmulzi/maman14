@@ -1,10 +1,10 @@
 Base 16 Address        Base 16 machine code
 64        824
-65        640
+65        4C
 66        0
 67        8B4
 68        100
-69        0
+69        78
 6A        644
 6B        0
 6C        700
@@ -14,7 +14,7 @@ Base 16 Address        Base 16 machine code
 70        5CC
 71        0
 72        82C
-73        720
+73        50
 74        C
 75        684
 76        0

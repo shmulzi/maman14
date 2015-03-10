@@ -70,7 +70,6 @@ void print_to_ext_file(char *fn)
 	f = fopen(full_fn,"w");
 	for(ptr = get_main_lbpr_list(); ptr != NULL; ptr = ptr->next){
 		if(isextern(ptr->label) == 0){
-			printf("IT IS DECIDED - %s        %X\n",ptr->label,ptr->address);
 			fprintf(f,"%s        %X\n",ptr->label,ptr->address);
 		}
 	}

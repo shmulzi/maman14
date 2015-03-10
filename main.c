@@ -4,17 +4,26 @@
 
 #define MEM_PTR_START_POINT 100
 
-
+/*reader.c*/
 char *freadline(FILE *f);
 int delegate_line(char *line);
+
+/*opcodes.c*/
 void populateOclist();
+void printOpcodeList();
+
+/*label.c*/
 void print_mllist();
+
+/*tran_directive.c*/
 void print_entry_list();
 void print_extern_list();
+
+/*second_pass.c*/
 void update_paramter_label_addresses();
-void printOpcodeList();
 void print_lbpr();
 
+/*global variables*/
 int curr_linenum;
 int main_address;
 char *curr_err;
@@ -50,7 +59,6 @@ assembledlist *al_append(int word, int address, assembledlist *al)
 		al->word = word;
 		al->address = address;
 		al->next = NULL;
-		printf("al_append - al->word = %X, al->address = %X\n",al->word,al->address);
 	} else {
 		al->next = al_append(word,address,al->next);
 	}
@@ -60,7 +68,6 @@ assembledlist *al_append(int word, int address, assembledlist *al)
 /*add_to_assembled_list - provides a way for all delegates functions to add code to the assembled list, and handles assigining the address*/
 int add_to_assembled_list(int code)
 {
-	printf("adding to assembled list - %X\n", code);
 	main_mem = al_append(code,main_address,main_mem);
 	main_address++;
 	return main_address-1;
@@ -96,30 +103,52 @@ void print_error(char *err)
 	exit(-1);
 }
 
+int hasasext(char *fn)
+{
+	int i = strlen(fn) - 3;
+	if(fn[i] != '.'){
+		return 0;
+	}
+	i++;
+	if(fn[i] != 'a'){
+		return 0;
+	}
+	i++;
+	if(fn[i] != 's'){
+		return 0;
+	}
+	return 1;
+}
+
 int main(int argc, char *argv[])
 {
+	int i;
 	curr_err = "";
 	main_address = MEM_PTR_START_POINT;
 	main_mem = NULL;
 	populateOclist();
-	if(argc == 2){
-		FILE *f = fopen(argv[1],"r");
+	for(i = 1; i < argc;i++){
+		char *file_ext = ".as";
+		char *full_fn = malloc(strlen(argv[i]) + strlen(file_ext) + 1);	
+		strcpy(full_fn,argv[i]);
+		strcat(full_fn,file_ext);
+		FILE *f;
 		int read_switch = 0;
 		curr_linenum = 1;
-		while(read_switch == 0){
-			printf("------------------------- begin line %d ----------------------------------\n",curr_linenum);
-			read_switch = delegate_line(freadline(f));
-			printf("------------------------- end line %d ----------------------------------\n",curr_linenum);
-			curr_linenum++;
+		if((f = fopen(full_fn,"r")) != NULL){
+			while(read_switch == 0){
+				read_switch = delegate_line(freadline(f));
+				curr_linenum++;
+			}
+			printf("printing from as file %s\n",full_fn);
+			print_to_obj_file(argv[i],main_mem);
+		} else {
+			printf("Preassembly error - the file %s does not exist\n",full_fn);
 		}
-	} else {
-		printf("you can only enter one argument currently\n");
 	}
 	update_paramter_label_addresses();
-
-	print_to_obj_file(argv[1],main_mem);
 	
-	printf("\n--->Begin Report of Data Collected - \n\n");
+	/*printf("\n--->Begin Report of Data Collected - \n\n");
 
 	if(main_mem != NULL){
 		print_mllist();
@@ -133,6 +162,6 @@ int main(int argc, char *argv[])
 	printf("\n--->Finished Report of Data Collected\n\n");
 	printOpcodeList();
 	printf("\n");
-	print_lbpr();
+	print_lbpr();*/
 	return 0;
 }
