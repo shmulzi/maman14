@@ -56,6 +56,7 @@ generic_list *gnl_append(char *label, int address, generic_list *gnl)
     return gnl;
 }
 
+/*isingnl - goes through generic list gnl and if the input label matches the label on one if its items it returns 1, if it does not contains the item it returns 0*/
 int isingnl(char *label, generic_list *gnl)
 {
 	generic_list *ptr;
@@ -68,6 +69,7 @@ int isingnl(char *label, generic_list *gnl)
 	return result;
 }
 
+/*isextern - looks through the extern list and if label matches of its items it returns 1, if it does not contain it - it returns 0*/
 int isextern(char *label)
 {
 	return isingnl(label,extern_list);
@@ -99,6 +101,7 @@ struct datalist *dl_append(int num, struct datalist *dl)
     return dl;
 }
 
+/*assemble_dir - goes through line, assembles a directive according to specifications, and puts in to the appropriate memory counters and lists*/
 int assemble_dir(char *line) 
 {
     
@@ -138,6 +141,7 @@ int assemble_dir(char *line)
     return f_address;
 }
 
+/*identify_dir - identifies which directive, if at all, the word is and returns a predetermined value*/
 int identify_dir(char *word)
 {
     if (strcmp(word, ".data") == 0) {
@@ -155,6 +159,7 @@ int identify_dir(char *word)
     return DIR_DOES_NOT_EXIST;
 }
 
+/*as_dataent - assembles data entry according to the line and enters the integers input in to the main memory*/
 int as_dataent(char *line)
 {
     int f_address = -1;
@@ -192,6 +197,7 @@ int as_dataent(char *line)
     return f_address;
 }
 
+/*as_stringent - assembles a string directive according to the line, and enters the ascii values of the characters + a 0 value at the end to the memory*/
 int as_stringent(char *line)
 {
 	int c;
@@ -217,18 +223,21 @@ int as_stringent(char *line)
     return f_address;
 }
 
+/*add_entry - adds entry to entry list according to label name*/
 void add_entry(char *label)
 {
     int address = get_from_mllist(label);
     entry_list = gnl_append(label,address,entry_list);
 }
 
+/*add_extern - adds extern to extern list according to label name*/
 void add_extern(char *label)
 {
     int address = get_from_mllist(label);
     extern_list = gnl_append(label,address,extern_list);
 }
 
+/*update_entries - goes through the entry list and searches the label list for the address of it, then updates it in the entry list*/
 void update_entries()
 {
 	generic_list *ptr;
@@ -237,6 +246,7 @@ void update_entries()
 	}
 }
 
+/*update_externs - goes through the extern list and searches the label list for the address of it, then updates it in the extern list*/
 void update_externs()
 {
 	generic_list *ptr;
@@ -245,6 +255,7 @@ void update_externs()
 	}
 }
 
+/*print_entry_list - prints the entry list in to the final .ent file*/
 void print_entry_list(char *fn)
 {
 	generic_list *ptr;
@@ -256,6 +267,7 @@ void print_entry_list(char *fn)
 	printf("--- End list of Entries.\n");
 }
 
+/*print_extern_list - goes through the main lbpr list, and if the label is an extern it prints its name and address to the final .ext file*/
 void print_extern_list(char *fn)
 {
 	generic_list *ptr;

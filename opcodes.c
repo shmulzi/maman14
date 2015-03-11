@@ -9,8 +9,6 @@
 #define DM_PERM 1
 #define DM_NOT 0
 
-
-
 struct oclist *oclistAlloc(void);
 
 struct oclist *opcodes;
