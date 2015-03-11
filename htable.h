@@ -1,5 +1,5 @@
-#include "exampleheader.h"
 #include <stdio.h>
+#include "defines.h"
 
 
 struct slist

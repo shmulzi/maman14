@@ -2,28 +2,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "structs.h"
 
-typedef struct asList{
-	int word;
-	int address;
-	struct asList *next;
-} assembledlist;
-
-typedef struct genlist{
-    char *label;
-    int address;
-    struct genlist *next;
-} generic_list;
-
-typedef struct lbprl{
-	int address;
-	char *label;
-	struct lbprl *next;
-} lbpr_list;
-
+/*tran_directive.c*/
 int isextern(char *label);
+
+/*second_pass.c*/
 lbpr_list *get_main_lbpr_list();
 
+/*print_to_obj_file - prints an assembled list to the obj file*/
 void print_to_obj_file(char *fn, assembledlist *al)
 {
 	char *file_ext;
@@ -41,6 +28,7 @@ void print_to_obj_file(char *fn, assembledlist *al)
 	}
 }
 
+/*print to ent file - prints an entry list to the .ent file*/
 void print_to_ent_file(char *fn, generic_list *ent_list)
 {
 	char *file_ext;
@@ -57,6 +45,7 @@ void print_to_ent_file(char *fn, generic_list *ent_list)
 	}
 }
 
+/*print to ext file - goes through the label list and compares to the extern file*/
 void print_to_ext_file(char *fn)
 {
 	char *file_ext;
@@ -69,7 +58,7 @@ void print_to_ext_file(char *fn)
 	strcat(full_fn,file_ext);
 	f = fopen(full_fn,"w");
 	for(ptr = get_main_lbpr_list(); ptr != NULL; ptr = ptr->next){
-		if(isextern(ptr->label) == 0){
+		if(isextern(ptr->label)){
 			fprintf(f,"%s        %X\n",ptr->label,ptr->address);
 		}
 	}

@@ -2,18 +2,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-
-#define OP_METH_INSTANT 0
-#define OP_METH_DIRECT 1
-#define OP_METH_DIST 2
-#define OP_METH_R_DIRECT 3
+#include "defines.h"
 
 #define R_DIR_SOURCE 0
 #define R_DIR_DEST 1
 #define R_DIR_NONE 2
-
-#define OP_TYPE_SRC 0
-#define OP_TYPE_DEST 1
 
 #define ADDR_R0 0
 #define ADDR_R1 1
@@ -126,7 +119,7 @@ int assemble_op(char *line)
 		}
 		s_operand = NULL;
 		d_operand = identify_param(param_word);	
-		if(is_method_permitted(opcode,d_operand->op_method,OP_TYPE_DEST) == 0){
+		if(is_method_permitted(opcode,d_operand->op_method,OP_TYPE_DEST)){
 			print_error("Op Error - Destination operand using illegal delivery method");
 		}
 	} else if(opcode->numOfParams == 2){
@@ -149,7 +142,7 @@ int assemble_op(char *line)
 		}
 		s_operand = identify_param(s_param_word);
 		while(line[i] == ' ') { i++; }
-		if(is_method_permitted(opcode,s_operand->op_method,OP_TYPE_SRC) == 0){
+		if(is_method_permitted(opcode,s_operand->op_method,OP_TYPE_SRC)){
 			print_error("Op Error - Source operand using illegal delivery method");
 		}
 		if(line[i] == '~'){
@@ -167,7 +160,7 @@ int assemble_op(char *line)
 			i++;
 		}
 		d_operand = identify_param(d_param_word);
-		if(is_method_permitted(opcode,d_operand->op_method,OP_TYPE_DEST) == 0){
+		if(is_method_permitted(opcode,d_operand->op_method,OP_TYPE_DEST)){
 			print_error("Op Error - Destination operand using illegal delivery method");
 		}
 	} else {
@@ -198,7 +191,7 @@ int assemble_op(char *line)
 				int prm = assemble_param(s_operand,era, R_DIR_NONE);
 				if(s_operand->op_method == OP_METH_DIRECT && prm == 0){
 					add_to_lbpr_list(add_to_assembled_list(prm), s_operand->param);
-				} else if (s_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(s_operand->param) == 0){
+				} else if (s_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(s_operand->param)){
 					add_to_distpr_list(s_operand->param,curr_op_addr,add_to_assembled_list(prm));
 				} else {
 					add_to_assembled_list(prm);
@@ -212,7 +205,7 @@ int assemble_op(char *line)
 				int prm = assemble_param(d_operand,era, R_DIR_NONE);
 				if(d_operand->op_method == OP_METH_DIRECT && prm == 0){
 					add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
-				} else if (d_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(d_operand->param) == 0){
+				} else if (d_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(d_operand->param)){
 					add_to_distpr_list(d_operand->param,curr_op_addr,add_to_assembled_list(prm));
 				} else {
 					add_to_assembled_list(prm);
@@ -253,7 +246,7 @@ op_param *identify_param(char *param_word)
 
 int is_dist_labels_addressed(char *dist_param)
 {
-	int result = -1;
+	int result = 0;
 	int i = 2; /*skip ~(*/
 	char *paramone ="";
 	char *paramtwo = "";
@@ -267,7 +260,7 @@ int is_dist_labels_addressed(char *dist_param)
 		i++;
 	}
 	if(get_from_mllist(paramone) == 0 || get_from_mllist(paramtwo) == 0){
-		result = 0;
+		result = 1;
 	}
 	return result;
 }

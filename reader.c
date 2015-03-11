@@ -5,7 +5,6 @@
 
 #define MAX_LINE_LENGTH 80
 
-
 /*self*/
 char *appendc(char *s, char c);
 char *rm_from_left(char *line, int indx);

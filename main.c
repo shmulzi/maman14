@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "structs.h"
 
 #define MEM_PTR_START_POINT 100
 
@@ -10,25 +11,16 @@ int delegate_line(char *line);
 
 /*opcodes.c*/
 void populateOclist();
-void printOpcodeList();
-
-/*label.c*/
-void print_mllist();
-
-/*tran_directive.c*/
-void print_entry_list();
-void print_extern_list();
 
 /*second_pass.c*/
 void update_paramter_label_addresses();
-void print_lbpr();
 
 /*global variables*/
 int curr_linenum;
 int main_address;
 char *curr_err;
 
-/*assembledlist - a linked list that contains the final memory - word counter to print*/
+/*assembledlist - a linked list that contains the final memory - word counter to print
 typedef struct asList{
 	int word;
 	int address;
@@ -40,7 +32,7 @@ typedef struct genlist{
     int address;
     struct genlist *next;
 } generic_list;
-
+*/
 void print_to_obj_file(char *fn, assembledlist *al);
 
 assembledlist *main_mem;

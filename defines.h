@@ -1,14 +1,5 @@
 #include <stdio.h>
 
-#define R0 0
-#define R1 1
-#define R2 2
-#define R3 3
-#define R4 4
-#define R5 5
-#define R6 6
-#define R7 7
-
 #define OPCODE_MOV 0
 #define OPCODE_CMP 1
 #define OPCODE_ADD 2
@@ -25,3 +16,11 @@
 #define OPCODE_JSR 13
 #define OPCODE_RTS 14
 #define OPCODE_STOP 15
+
+#define OP_METH_INSTANT 0
+#define OP_METH_DIRECT 1
+#define OP_METH_DIST 2
+#define OP_METH_R_DIRECT 3
+
+#define OP_TYPE_SRC 0
+#define OP_TYPE_DEST 1

@@ -1,31 +1,17 @@
-#include "exampleheader.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
 
+#include "defines.h"
+#include "structs.h"
+
 #define DM_PERM 1
 #define DM_NOT 0
 
-#define OP_METH_INSTANT 0
-#define OP_METH_DIRECT 1
-#define OP_METH_DIST 2
-#define OP_METH_R_DIRECT 3
 
-#define OP_TYPE_SRC 0
-#define OP_TYPE_DEST 1
 
 struct oclist *oclistAlloc(void);
-
-struct oclist
-{
-	char *code;
-	int numOfParams;
-	int val;
-	int leg_sop;
-	int leg_dop;
-	struct oclist *next;
-};
 
 struct oclist *opcodes;
 
@@ -38,13 +24,13 @@ int permit_switch(int instant, int direct, int distance, int r_direct)
 int is_method_permitted(struct oclist *ocitem, int meth, int op_type)
 {
 	int mask = 1 << meth;
-	int result = -1;
+	int result = 1;
 	if(op_type == OP_TYPE_DEST){
 		result = ocitem->leg_dop & mask;
 	} else if (op_type == OP_TYPE_SRC) {
 		result = ocitem->leg_sop & mask;
 	}
-	return result; 
+	return !result;
 }
 
 struct oclist *addOpcode(char *code, int numOfParams, int val, int leg_sop, int leg_dop, struct oclist *ocl)

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "structs.h"
 
 #define DIR_DOES_NOT_EXIST 0
 #define DIR_DATA 1
@@ -30,12 +31,7 @@ int get_from_mllist(char *label);
 /*tran_op.c*/
 int twos_complement_neg(int pos);
 
-typedef struct genlist{
-    char *label;
-    int address;
-    struct genlist *next;
-} generic_list;
-
+/*foutput.c*/
 void print_to_ent_file(char *fn, generic_list *ent_list);
 void print_to_ext_file(char *fn);
 
@@ -63,10 +59,10 @@ generic_list *gnl_append(char *label, int address, generic_list *gnl)
 int isingnl(char *label, generic_list *gnl)
 {
 	generic_list *ptr;
-	int result = -1;
+	int result = 0;
 	for(ptr = gnl; ptr != NULL; ptr = ptr->next){
 		if(strcmp(ptr->label,label) == 0){
-			result = 0;
+			result = 1;
 		}
 	}
 	return result;
