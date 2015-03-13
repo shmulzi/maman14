@@ -7,7 +7,6 @@
 
 /*reader.c*/
 char *freadline(FILE *f);
-int delegate_line(char *line);
 
 /*opcodes.c*/
 void populateOclist();
@@ -15,27 +14,32 @@ void populateOclist();
 /*second_pass.c*/
 void update_paramter_label_addresses();
 
+/*label.c*/
+void add_to_mllist(char *label, int word);
+
+/*tran_directive.c*/
+int assemble_dir(char *line);
+
+/*tran_op.c*/
+int assemble_op(char *line);
+
+/*genfunc.c*/
+void print_error(char *err);
+char *appendc(char *s, char c);
+char *rm_from_left(char *line, int indx);
+char *slice(char *s, int l_index, int r_index);
+
 /*global variables*/
 int curr_linenum;
 int main_address;
 char *curr_err;
 
-/*assembledlist - a linked list that contains the final memory - word counter to print
-typedef struct asList{
-	int word;
-	int address;
-	struct asList *next;
-} assembledlist;
-
-typedef struct genlist{
-    char *label;
-    int address;
-    struct genlist *next;
-} generic_list;
-*/
 void print_to_obj_file(char *fn, assembledlist *al);
 
 assembledlist *main_mem;
+
+int op_count;
+int dir_count;
 
 /*al_alloc - allocates memory for a new item in the assembledlist linked list*/
 assembledlist *al_alloc(void)
@@ -89,12 +93,6 @@ void update_curr_err(char *err)
 	curr_err = err;
 }
 
-void print_error(char *err)
-{
-	printf("Error in line %d - %s\n",curr_linenum,err);
-	exit(-1);
-}
-
 int hasasext(char *fn)
 {
 	int i = strlen(fn) - 3;
@@ -112,8 +110,55 @@ int hasasext(char *fn)
 	return 1;
 }
 
+int delegate_line(char *line)
+{
+	int r;
+	char *label;
+	int is_dir;
+	int label_addr;
+	int i;
+	r = 0;
+	label = "";
+	is_dir = 0;
+	label_addr = 0;
+	if(strlen(line) > 0){
+		if(line[0] == ';'){
+			/*This is a comment, go to next line*/
+			return 0;
+		}
+		if(line[strlen(line)-1] == EOF){
+			line = rm_from_right(line,strlen(line)-1);
+			r = 1;
+		}
+		i = 0;
+		while(line[i] != '\0'){
+			if(line[i] == ':'){
+				label = slice(line,0,i-1);
+				line = rm_from_left(line, i+1);
+				i = 0;
+				while(line[i] == ' '){ i++; }
+			}
+			if(line[i] == '.'){
+				label_addr = assemble_dir(line);
+				is_dir = 1;
+				dir_count++;
+			}
+			i++;
+		}
+		if(is_dir == 0){
+			label_addr = assemble_op(line);
+			op_count++;
+		}
+		if(strlen(label) > 0){
+			add_to_mllist(label,label_addr);
+		}
+	}
+	return r;
+}
+
 int main(int argc, char *argv[])
 {
+	op_count = dir_count = 0;
 	int i;
 	curr_err = "";
 	main_address = MEM_PTR_START_POINT;
@@ -133,27 +178,11 @@ int main(int argc, char *argv[])
 				curr_linenum++;
 			}
 			printf("printing from as file %s\n",full_fn);
+			update_paramter_label_addresses();
 			print_to_obj_file(argv[i],main_mem);
 		} else {
 			printf("Preassembly error - the file %s does not exist\n",full_fn);
 		}
 	}
-	update_paramter_label_addresses();
-	
-	/*printf("\n--->Begin Report of Data Collected - \n\n");
-
-	if(main_mem != NULL){
-		print_mllist();
-		printf("\n");
-		print_main_al();
-		printf("\n");
-		print_entry_list(argv[1]);
-		printf("\n");
-		print_extern_list(argv[1]);
-	}
-	printf("\n--->Finished Report of Data Collected\n\n");
-	printOpcodeList();
-	printf("\n");
-	print_lbpr();*/
 	return 0;
 }

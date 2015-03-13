@@ -13,6 +13,8 @@ lbpr_list *get_main_lbpr_list();
 /*print_to_obj_file - prints an assembled list to the obj file*/
 void print_to_obj_file(char *fn, assembledlist *al)
 {
+	extern int op_count;
+	extern int dir_count;
 	char *file_ext;
 	char *full_fn;
 	FILE *f;
@@ -23,6 +25,7 @@ void print_to_obj_file(char *fn, assembledlist *al)
 	strcat(full_fn,file_ext);
 	f = fopen(full_fn,"w");
 	fprintf(f,"Base 16 Address        Base 16 machine code\n");
+	fprintf(f,"      %X        %X\n",op_count,dir_count);
 	for(ptr = al; ptr != NULL; ptr = ptr->next){
 		fprintf(f,"%X        %X\n",ptr->address,ptr->word);
 	}

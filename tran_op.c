@@ -17,6 +17,10 @@
 #define ADDR_R6 6
 #define ADDR_R7 7
 
+#define ABSOLUTE 0
+#define EXTERN 1
+#define RELOCATABLE 2
+
 typedef struct {
 	char *param;
 	int op_method;
@@ -43,7 +47,7 @@ struct oclist
 
 /*self*/
 int get_r_addr(char *name);
-int assemble_param(op_param *param, int era, int r_dir_side);
+int assemble_param(op_param *param, int r_dir_side);
 int assemble_param_rdirect(op_param *source_p, op_param *dest_p, int era);
 int get_max_dist(int addr_one, int addr_two, int op_addr);
 int max(int a, int b, int c);
@@ -57,12 +61,7 @@ struct oclist *getOpcodeByCode(char *code);
 int is_method_permitted(struct oclist *ocitem, int meth, int op_type);
 
 /*main.c*/
-void print_error(char *err);
 int add_to_assembled_list(int code);
-
-/*reader.c*/
-char *appendc(char *s, char c);
-char *rm_from_left(char *line, int indx);
 
 /*label.c*/
 int get_from_mllist(char *label);
@@ -71,9 +70,17 @@ int get_from_mllist(char *label);
 void add_to_lbpr_list(int address, char *label);
 void add_to_distpr_list(char *dist_param, int opcode_address, int address);
 
+/*genfunc.c*/
+void print_error(char *err);
+char *appendc(char *s, char c);
+char *rm_from_left(char *line, int indx);
+char *slice(char *s, int l_index, int r_index);
+
 /*global params*/
 int curr_op_addr;
 
+/*aseemble_op - receives a line string, identifies the opcode and its required params, assembles opcode and params and commits them to memory
+ * returns the address for the opcode itself in the main memory*/
 int assemble_op(char *line)
 {
 	/*local vars*/
@@ -81,7 +88,6 @@ int assemble_op(char *line)
 	int op_so;
 	int op_do;
 	int r_word;
-	int era = 0;
 	op_param *s_operand = NULL;
 	op_param *d_operand = NULL;
 	int group;
@@ -177,19 +183,18 @@ int assemble_op(char *line)
 	if(d_operand != NULL){
 		op_do = d_operand->op_method;
 	}
-	r_word = gen_as_op(group,opcode->val,op_so,op_do,era);
+	r_word = gen_as_op(group,opcode->val,op_so,op_do,ABSOLUTE);
 	curr_op_addr = opcode_address = add_to_assembled_list(r_word);
 	
 	if(group == 2 && s_operand->op_method == OP_METH_R_DIRECT && d_operand->op_method == OP_METH_R_DIRECT){
-		add_to_assembled_list(assemble_param_rdirect(s_operand, d_operand, era));
+		add_to_assembled_list(assemble_param_rdirect(s_operand, d_operand, ABSOLUTE));
 	} else {
-	
 		if(s_operand != NULL){
 			if(s_operand->op_method == OP_METH_R_DIRECT){
-				add_to_assembled_list(assemble_param(s_operand,era, R_DIR_SOURCE));
+				add_to_assembled_list(assemble_param(s_operand, R_DIR_SOURCE));
 			} else {
-				int prm = assemble_param(s_operand,era, R_DIR_NONE);
-				if(s_operand->op_method == OP_METH_DIRECT && prm == 0){
+				int prm = assemble_param(s_operand,R_DIR_NONE);
+				if(s_operand->op_method == OP_METH_DIRECT && prm == 2){
 					add_to_lbpr_list(add_to_assembled_list(prm), s_operand->param);
 				} else if (s_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(s_operand->param)){
 					add_to_distpr_list(s_operand->param,curr_op_addr,add_to_assembled_list(prm));
@@ -200,10 +205,10 @@ int assemble_op(char *line)
 		}
 		if(d_operand != NULL){
 			if(d_operand->op_method == OP_METH_R_DIRECT){
-				add_to_assembled_list(assemble_param(d_operand,era, R_DIR_DEST));
+				add_to_assembled_list(assemble_param(d_operand, R_DIR_DEST));
 			} else {
-				int prm = assemble_param(d_operand,era, R_DIR_NONE);
-				if(d_operand->op_method == OP_METH_DIRECT && prm == 0){
+				int prm = assemble_param(d_operand, R_DIR_NONE);
+				if(d_operand->op_method == OP_METH_DIRECT && prm == 2){
 					add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
 				} else if (d_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(d_operand->param)){
 					add_to_distpr_list(d_operand->param,curr_op_addr,add_to_assembled_list(prm));
@@ -216,9 +221,10 @@ int assemble_op(char *line)
 	return opcode_address;
 }
 
+/*identify_param - recives a param word, identifies the param type and returns it as a param that can be assembled
+ * returns an object of type op_param which contains the op type and the param itself for assembly*/
 op_param *identify_param(char *param_word)
 {
-	int era;
 	int i;
 	op_param *result = opp_alloc();
 	result->op_method = -1;
@@ -244,6 +250,8 @@ op_param *identify_param(char *param_word)
 	return result;
 }
 
+/*is_dist_labels_addressed - recieves a distance param and checks if both labels inside of it are already addressed in the main memory
+ * returns 1 if one of the labels do not have an address yet, 0 if not */
 int is_dist_labels_addressed(char *dist_param)
 {
 	int result = 0;
@@ -265,6 +273,8 @@ int is_dist_labels_addressed(char *dist_param)
 	return result;
 }
 
+/*get_r_addr - recieves a string and checks if it matches the reserved name of a register, if so it returns its address
+ * returns the address of the named register, or a -1 if the name is not resereved for a register*/
 int get_r_addr(char *name)
 {
 	int result = -1;
@@ -287,13 +297,16 @@ int get_r_addr(char *name)
 	}
 	return result;
 }
-
+/*twos_complement_neg - receives a positive integer and returns it as a two complement negative
+ * returns an integer that is a twos complement negative of the positive number given*/
 int twos_complement_neg(int pos)
 {
 	return ~pos+1;
 }
 
-int assemble_param(op_param *p, int era, int r_dir_side)
+/*assemble_param - recieves a parameter and an integer indicating on which side the register is in case it is a register (for register direct delivery method)
+ * returns the address of the param after it is commited to the main memory*/
+int assemble_param(op_param *p, int r_dir_side)
 {
 	int result = -1;
 	if(p->op_method == OP_METH_INSTANT){
@@ -321,11 +334,11 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 			num = twos_complement_neg(num);
 		}
 		num = num << 2;
-		result = num | era;
+		result = num | ABSOLUTE;
 	} else if(p->op_method == OP_METH_DIRECT) {
-		result = get_from_mllist(p->param);
+		result = (get_from_mllist(p->param) << 2) | RELOCATABLE;
 	} else if(p->op_method == OP_METH_DIST){
-		result = (calc_dist(p->param, curr_op_addr) << 2) | era;
+		result = calc_dist(p->param, curr_op_addr);
 	} else if(p->op_method == OP_METH_R_DIRECT) {
 		int r_addr = get_r_addr(p->param);
 		if(r_dir_side == R_DIR_SOURCE){
@@ -335,11 +348,13 @@ int assemble_param(op_param *p, int era, int r_dir_side)
 		} else {
 			printf("you havent included the r_dir side in which to place the thing");
 		}
-		result = r_addr | era;
+		result = r_addr | ABSOLUTE;
 	}
 	return result;
 }
 
+/*calc_dist - receives a distance param and its opcode address and returns the max distance between one param to the other, or each param to the opcode address
+ * returns the max distance between the first and second label in the param, the distance between the opcode and the first label, and the distance between the opcode and the second label*/
 int calc_dist(char *dist_param, int opcode_address)
 {
 	int lbl_one_addr;
@@ -365,9 +380,11 @@ int calc_dist(char *dist_param, int opcode_address)
 	lbl_one_addr = get_from_mllist(label_one);
 	lbl_two_addr = get_from_mllist(label_two);
 	result = get_max_dist(lbl_one_addr,lbl_two_addr,opcode_address);
-	return result << 2;
+	return (result << 2) | ABSOLUTE;
 }
 
+/*assemble_param_rdirect - takes 2 params that are registers and assembles it as required and returns it
+ * returns the assembled r direct param*/
 int assemble_param_rdirect(op_param *source_p, op_param *dest_p, int era)
 {
 	int r_addr_source = get_r_addr(source_p->param);
@@ -377,6 +394,8 @@ int assemble_param_rdirect(op_param *source_p, op_param *dest_p, int era)
 	return (r_addr_source | r_addr_dest | era);
 }
 
+/*get_max_dist - calculates the distance between the different addresses it receives and returns the max distance between them
+ * returns the max distance between the 3 recieved addresses*/
 int get_max_dist(int addr_one, int addr_two, int op_addr)
 {
 	int dist_one_two = abs(addr_one-addr_two);
@@ -388,10 +407,10 @@ int get_max_dist(int addr_one, int addr_two, int op_addr)
 int max(int a, int b, int c)
 {
 	int max = a;
-	if(b > a){
+	if(b > max){
 		max = b;
 	}
-	if(c > a){
+	if(c > max){
 		max = c;
 	}
 	return max;

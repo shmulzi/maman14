@@ -4,11 +4,14 @@
 
 #define MAX_LABEL_SIZE 30
 
-/*main.c*/
-void print_error(char *err);
-
 /*opcodes.c*/
 int isopcode(char *code);
+
+/*genfunc.c*/
+void print_error(char *err);
+char *appendc(char *s, char c);
+char *rm_from_left(char *line, int indx);
+char *slice(char *s, int l_index, int r_index);
 
 typedef struct llist{
 	char *label;

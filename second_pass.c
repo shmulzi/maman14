@@ -10,6 +10,7 @@ void update_word_at_address(int address, int word);
 int get_from_mllist(char *label);
 
 /*tran_directive.c*/
+int isextern(char *label);
 void update_entries();
 void update_externs();
 
@@ -83,7 +84,11 @@ void update_label_addresses()
 {
 	lbpr_list *ptr;
 	for(ptr = main_lbpr_list; ptr != NULL; ptr = ptr->next){
-		update_word_at_address(ptr->address, get_from_mllist(ptr->label));
+		if(isextern(ptr->label)){
+			update_word_at_address(ptr->address, ((get_from_mllist(ptr->label) << 2) | 1));
+		} else {
+			update_word_at_address(ptr->address, ((get_from_mllist(ptr->label) << 2) | 2));
+		}
 	}
 }
 

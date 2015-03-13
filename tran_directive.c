@@ -17,13 +17,7 @@ int as_stringent(char *line);
 void add_entry(char *label);
 void add_extern(char *label);
 
-/*reader.c*/
-char *appendc(char *s, char c);
-char *rm_from_left(char *line, int indx);
-
-/*main.c*/
 int add_to_assembled_list(int code);
-void print_error(char *err);
 
 /*label.c*/
 int get_from_mllist(char *label);
@@ -34,6 +28,12 @@ int twos_complement_neg(int pos);
 /*foutput.c*/
 void print_to_ent_file(char *fn, generic_list *ent_list);
 void print_to_ext_file(char *fn);
+
+/*genfunc.c*/
+void print_error(char *err);
+char *appendc(char *s, char c);
+char *rm_from_left(char *line, int indx);
+char *slice(char *s, int l_index, int r_index);
 
 generic_list *entry_list;
 generic_list *extern_list;
