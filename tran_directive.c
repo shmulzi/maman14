@@ -17,6 +17,7 @@ int as_stringent(char *line);
 void add_entry(char *label);
 void add_extern(char *label);
 
+/*main.c*/
 int add_to_assembled_list(int code);
 
 /*label.c*/

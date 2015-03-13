@@ -403,6 +403,7 @@ int get_max_dist(int addr_one, int addr_two, int op_addr)
 	return max(dist_one_two,dist_op_one,dist_op_two);
 }
 
+/*max - returns the maximum value between a, b and c*/
 int max(int a, int b, int c)
 {
 	int max = a;
@@ -415,6 +416,8 @@ int max(int a, int b, int c)
 	return max;
 }
 
+/*gen_as_op - receives paramters to assemble an op code and generates it
+ * returns the generated opcode*/
 int gen_as_op(int group, int opcode, int s_op, int d_op, int era)
 {
 	group = group << 10;

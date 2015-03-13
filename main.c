@@ -69,6 +69,7 @@ int add_to_assembled_list(int code)
 	return main_address-1;
 }
 
+/*update_word_at_address - finds the location to update according to the address, and replaces its content with the input word*/
 void update_word_at_address(int address, int word)
 {
 	assembledlist *ptr;
@@ -79,37 +80,8 @@ void update_word_at_address(int address, int word)
 	}
 }
 
-void print_main_al()
-{
-	printf("--- List of Assembled:\n");
-	for(; main_mem != NULL; main_mem = main_mem->next){
-		printf("Word Address - %X           Word - %X\n",main_mem->address,main_mem->word);
-	}
-	printf("--- End list of Assembled.\n");
-}
-
-void update_curr_err(char *err)
-{
-	curr_err = err;
-}
-
-int hasasext(char *fn)
-{
-	int i = strlen(fn) - 3;
-	if(fn[i] != '.'){
-		return 0;
-	}
-	i++;
-	if(fn[i] != 'a'){
-		return 0;
-	}
-	i++;
-	if(fn[i] != 's'){
-		return 0;
-	}
-	return 1;
-}
-
+/*delegate_line - recieves a line, analyzes it and delegates it accordingly
+ * returns 1 if EOF was in the line or 0 if not*/
 int delegate_line(char *line)
 {
 	int r;

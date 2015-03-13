@@ -36,6 +36,7 @@ label_list *ll_append(char *label, int address, label_list *ll)
 	return ll;
 }
 
+/*add_to_mllist - recieves a label and an address and adds it to the main label list*/
 void add_to_mllist(char *label, int address)
 {
 	if(strlen(label) > MAX_LABEL_SIZE){
@@ -47,6 +48,8 @@ void add_to_mllist(char *label, int address)
 	}
 }
 
+/*get_from_mllist - searches for the label received and returns the address for it
+ * returns the address for the label*/
 int get_from_mllist(char *label)
 {
 	int result;
@@ -59,14 +62,4 @@ int get_from_mllist(char *label)
 		}
 	}
 	return result;
-}
-
-void print_mllist()
-{
-	label_list *ptr;
-	printf("--- List of Labels:\n");
-	for(ptr = main_llist; ptr != NULL; ptr = ptr->next){
-		printf("label name - %s            label address - %X\n",ptr->label,ptr->address);
-	}
-	printf("--- End list of Labels.\n");
 }

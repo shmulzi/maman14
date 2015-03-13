@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "structs.h"
 
 /*main.c*/
 void update_word_at_address(int address, int word);
@@ -16,19 +17,6 @@ void update_externs();
 
 /*tran_op.c*/
 int calc_dist(char *dist_param, int opcode_address);
-
-typedef struct lbprl{
-	int address;
-	char *label;
-	struct lbprl *next;
-} lbpr_list;
-
-typedef struct dstprl{
-	char *dist_param;
-	int opcode_address;
-	int address;
-	struct dstprl *next;
-} distpr_list;
 
 lbpr_list *lbpr_alloc(void)
 {
@@ -70,16 +58,21 @@ distpr_list *distpr_append(char *dist_param, int opcode_address, int address, di
 lbpr_list *main_lbpr_list;
 distpr_list *main_distpr_list;
 
+/*add_to_lbpr_list - adds the label and address to the main lbpr list*/
 void add_to_lbpr_list(int address, char *label)
 {
 	main_lbpr_list = lbpr_append(address, label, main_lbpr_list);
 }
 
+/*add_to_distpr_list - adds the distance param, opcode address and adress to the main distpr list*/
 void add_to_distpr_list(char *dist_param, int opcode_address, int address)
 {
 	main_distpr_list = distpr_append(dist_param,opcode_address,address,main_distpr_list);
 }
 
+/*update_label_addresses - goes through the main lbpr list (which contains all the updated addresses of
+ * labels and externs called before they were defined) and updates the actual addresses in the main memory
+ * with the real address per label (with era 1 for externs and era 2 for labels)*/
 void update_label_addresses()
 {
 	lbpr_list *ptr;
@@ -92,6 +85,9 @@ void update_label_addresses()
 	}
 }
 
+/*update_dist_addresses - goes through the main distpr list (which contains distance paramaters that have labels
+ * and externs that are not yet addressed in the main memory) updates their addresses and then recalulates the distance
+ * accordingly and replaces it in the correct place in the main memory */
 void update_dist_addresses()
 {
 	distpr_list *ptr;
@@ -101,25 +97,17 @@ void update_dist_addresses()
 	}
 }
 
+/*get_main_lbpr_list - returns the main lbpr list*/
 lbpr_list *get_main_lbpr_list()
 {
 	return main_lbpr_list;
 }
 
+/*update_paramter_label_addresses - updates the main memory for parameters that haven't been addressed yet*/
 void update_paramter_label_addresses()
 {
 	update_label_addresses();
 	update_dist_addresses();
 	update_entries();
 	update_externs();
-}
-
-void print_lbpr()
-{
-	lbpr_list *ptr;
-	printf("--- List of LBPR:\n");
-	for(ptr = main_lbpr_list; ptr != NULL; ptr = ptr->next){
-		printf("lbpr - %s           Address - %X\n",ptr->label,ptr->address);
-	}
-	printf("--- End list of LBPR.\n");
 }

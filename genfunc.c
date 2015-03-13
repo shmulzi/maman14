@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+/*print_error - prints out the received string and exits the program with a result -1*/
 void print_error(char *err)
 {
 	extern int curr_linenum;
@@ -25,6 +26,8 @@ char *appendc(char *s, char c)
 	
 }
 
+/*rm_from_left - takes in a string and returns it with characters removed from the far left up to index
+ * retruns the result string*/
 char *rm_from_left(char *line, int indx)
 {
 	char *newline = "";
@@ -35,7 +38,8 @@ char *rm_from_left(char *line, int indx)
 	}
 	return newline;
 }
-
+/*rm_from_right - takes in a string and returns it with characters removed from the far right up to index
+ * retruns the result string*/
 char *rm_from_right(char *line, int indx)
 {
 	char *newline = "";
@@ -47,6 +51,8 @@ char *rm_from_right(char *line, int indx)
 	return newline;
 }
 
+/*slice - takes in a string and returns a substring from r_index to l_index
+ * returns the result string*/
 char *slice(char *s, int l_index, int r_index)
 {
 	char *result = "";
