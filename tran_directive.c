@@ -33,7 +33,6 @@ void print_to_ext_file(char *fn);
 void print_error(char *err);
 char *appendc(char *s, char c);
 char *rm_from_left(char *line, int indx);
-char *slice(char *s, int l_index, int r_index);
 
 generic_list *entry_list;
 generic_list *extern_list;

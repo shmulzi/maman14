@@ -8,8 +8,6 @@
 /*genfunc.c*/
 void print_error(char *err);
 char *appendc(char *s, char c);
-char *rm_from_left(char *line, int indx);
-char *slice(char *s, int l_index, int r_index);
 
 /*freadline - goes through a line in file f and if it hits an end of line / file it returns all the input it has gotten including the EOF if it found one for the line delegator to process
  * if the line is over 80 characters an error will appear and the assemble*/

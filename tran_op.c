@@ -74,7 +74,6 @@ void add_to_distpr_list(char *dist_param, int opcode_address, int address);
 void print_error(char *err);
 char *appendc(char *s, char c);
 char *rm_from_left(char *line, int indx);
-char *slice(char *s, int l_index, int r_index);
 
 /*global params*/
 int curr_op_addr;
