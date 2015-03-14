@@ -1,3 +1,5 @@
+/*tran_directive.c - contains structures and functions that handle the assembly and commintment to memory of directives*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -43,6 +45,8 @@ generic_list *gnl_alloc(void)
     return (generic_list *)malloc(sizeof(generic_list));
 }
 
+/*append_opcode- recieves a generic list object and paramters for a new one, creates it and appends it to the last node
+ * returns the recieved generic list object with the new node appended*/
 generic_list *gnl_append(char *label, int address, generic_list *gnl)
 {
     if (gnl == NULL) {

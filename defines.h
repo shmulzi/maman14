@@ -1,3 +1,5 @@
+/*defines.h - contains pre-processor definitions that need to take effect in more that one file in the program*/
+
 #include <stdio.h>
 
 #define OPCODE_MOV 0

@@ -1,3 +1,5 @@
+/*second_pass.c - contains sturctures and functions that handle the memory after the first passthrough to update it accordingly before it prints to file*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -18,11 +20,14 @@ void update_externs();
 /*tran_op.c*/
 int calc_dist(char *dist_param, int opcode_address);
 
+/*lbpr_alloc - returns allocated memory for a new lbpr list object*/
 lbpr_list *lbpr_alloc(void)
 {
     return (lbpr_list *)malloc(sizeof(lbpr_list));
 }
 
+/*lbpr_append- recieves an lbpr list object and paramters for a new one, creates it and appends it to the last node
+ * returns the recieved lbpr list object with the new node appended*/
 lbpr_list *lbpr_append(int address, char *label, lbpr_list *lbpr)
 {
     if (lbpr == NULL) {
@@ -36,11 +41,14 @@ lbpr_list *lbpr_append(int address, char *label, lbpr_list *lbpr)
     return lbpr;
 }
 
+/*distpr_alloc - returns allocated memory for a new distpr list object*/
 distpr_list *distpr_alloc(void)
 {
     return (distpr_list *)malloc(sizeof(distpr_list));
 }
 
+/*distpr_append- recieves a distpr list object and paramters for a new one, creates it and appends it to the last node
+ * returns the recieved distpr list object with the new node appended*/
 distpr_list *distpr_append(char *dist_param, int opcode_address, int address, distpr_list *distpr)
 {
     if (distpr == NULL) {
@@ -55,6 +63,7 @@ distpr_list *distpr_append(char *dist_param, int opcode_address, int address, di
     return distpr;
 }
 
+/*global paramters*/
 lbpr_list *main_lbpr_list;
 distpr_list *main_distpr_list;
 

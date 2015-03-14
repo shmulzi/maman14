@@ -1,3 +1,5 @@
+/*reader.c - contains the main fuction for handling the reading of the files input to the program*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

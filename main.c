@@ -1,3 +1,5 @@
+/*main.c - contains the main function for the program, along with the main memory and a function to delegeate each line in the received file to proper assembly*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,7 +11,7 @@
 char *freadline(FILE *f);
 
 /*opcodes.c*/
-void populateOclist();
+void populate_oclist();
 
 /*second_pass.c*/
 void update_paramter_label_addresses();
@@ -27,13 +29,14 @@ int assemble_op(char *line);
 void print_error(char *err);
 char *appendc(char *s, char c);
 char *rm_from_left(char *line, int indx);
+char *rm_from_right(char *line, int indx);
 char *slice(char *s, int l_index, int r_index);
 
 /*global variables*/
 int curr_linenum;
 int main_address;
-char *curr_err;
 
+/*foutput.c*/
 void print_to_obj_file(char *fn, assembledlist *al);
 
 assembledlist *main_mem;
@@ -80,7 +83,7 @@ void update_word_at_address(int address, int word)
 	}
 }
 
-/*delegate_line - recieves a line, analyzes it and delegates it accordingly
+/*delegate_line - recieves a line, analyzes it and delegates it accordingly (creates label if nescesary, and moves the outcome to either create an op or a directive)
  * returns 1 if EOF was in the line or 0 if not*/
 int delegate_line(char *line)
 {
@@ -130,19 +133,18 @@ int delegate_line(char *line)
 
 int main(int argc, char *argv[])
 {
-	op_count = dir_count = 0;
 	int i;
-	curr_err = "";
 	main_address = MEM_PTR_START_POINT;
 	main_mem = NULL;
-	populateOclist();
+	op_count = dir_count = 0;
+	populate_oclist();
 	for(i = 1; i < argc;i++){
+		FILE *f;
+		int read_switch = 0;
 		char *file_ext = ".as";
 		char *full_fn = malloc(strlen(argv[i]) + strlen(file_ext) + 1);	
 		strcpy(full_fn,argv[i]);
 		strcat(full_fn,file_ext);
-		FILE *f;
-		int read_switch = 0;
 		curr_linenum = 1;
 		if((f = fopen(full_fn,"r")) != NULL){
 			while(read_switch == 0){

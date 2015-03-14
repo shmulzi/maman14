@@ -1,3 +1,5 @@
+/*genfunc.c - contains functions that handle errors and string manipulation*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -15,15 +17,12 @@ void print_error(char *err)
 char *appendc(char *s, char c)
 {
 	char *str;
-	
 	size_t len = strlen(s);
 	str = (char *)malloc(len+2); /*adding extra space for the character and end string char '\0' */
 	strcpy(str,s);
 	str[len] = c;
 	str[len + 1] = '\0';
-	
 	return str;
-	
 }
 
 /*rm_from_left - takes in a string and returns it with characters removed from the far left up to index

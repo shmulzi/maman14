@@ -1,3 +1,5 @@
+/*foutput.c - contains functions that handle the writing of different memory structures to files*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

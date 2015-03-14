@@ -1,8 +1,11 @@
+/*tran_op.c - contains functions that handle the assembly and commiting to memory of an opcode and its parameters*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include "defines.h"
+#include "structs.h"
 
 #define R_DIR_SOURCE 0
 #define R_DIR_DEST 1
@@ -21,6 +24,8 @@
 #define EXTERN 1
 #define RELOCATABLE 2
 
+#define NOT_IN_MEMORY 2
+
 typedef struct {
 	char *param;
 	int op_method;
@@ -37,14 +42,6 @@ typedef struct {
 	int d_operand;
 } op;
 
-struct oclist
-{
-	char *code;
-	int numOfParams;
-	int val;
-	struct oclist *next;
-};
-
 /*self*/
 int get_r_addr(char *name);
 int assemble_param(op_param *param, int r_dir_side);
@@ -55,9 +52,10 @@ int gen_as_op(int group, int opcode, int s_op, int d_op, int era);
 op_param *identify_param(char *param_word);
 int is_dist_labels_addressed(char *dist_param);
 int calc_dist(char *dist_param, int opcode_address);
+void handle_param(op_param *p, int r_dir);
 
 /*opcodes.c*/
-struct oclist *getOpcodeByCode(char *code);
+struct oclist *get_opcode(char *code);
 int is_method_permitted(struct oclist *ocitem, int meth, int op_type);
 
 /*main.c*/
@@ -102,7 +100,7 @@ int assemble_op(char *line)
 		opc	 = appendc(opc,line[i]);
 		i++;
 	}
-	opcode = getOpcodeByCode(opc);
+	opcode = get_opcode(opc);
 	if(opcode != NULL){
 		line = rm_from_left(line,i);
 		i = 0;
@@ -185,39 +183,35 @@ int assemble_op(char *line)
 	r_word = gen_as_op(group,opcode->val,op_so,op_do,ABSOLUTE);
 	curr_op_addr = opcode_address = add_to_assembled_list(r_word);
 	
+	/*handle parameters according to their information*/
 	if(group == 2 && s_operand->op_method == OP_METH_R_DIRECT && d_operand->op_method == OP_METH_R_DIRECT){
 		add_to_assembled_list(assemble_param_rdirect(s_operand, d_operand, ABSOLUTE));
 	} else {
 		if(s_operand != NULL){
-			if(s_operand->op_method == OP_METH_R_DIRECT){
-				add_to_assembled_list(assemble_param(s_operand, R_DIR_SOURCE));
-			} else {
-				int prm = assemble_param(s_operand,R_DIR_NONE);
-				if(s_operand->op_method == OP_METH_DIRECT && prm == 2){
-					add_to_lbpr_list(add_to_assembled_list(prm), s_operand->param);
-				} else if (s_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(s_operand->param)){
-					add_to_distpr_list(s_operand->param,curr_op_addr,add_to_assembled_list(prm));
-				} else {
-					add_to_assembled_list(prm);
-				}
-			}
+			handle_param(s_operand,R_DIR_SOURCE);
 		}
 		if(d_operand != NULL){
-			if(d_operand->op_method == OP_METH_R_DIRECT){
-				add_to_assembled_list(assemble_param(d_operand, R_DIR_DEST));
-			} else {
-				int prm = assemble_param(d_operand, R_DIR_NONE);
-				if(d_operand->op_method == OP_METH_DIRECT && prm == 2){
-					add_to_lbpr_list(add_to_assembled_list(prm),d_operand->param);
-				} else if (d_operand->op_method == OP_METH_DIST && is_dist_labels_addressed(d_operand->param)){
-					add_to_distpr_list(d_operand->param,curr_op_addr,add_to_assembled_list(prm));
-				} else {
-					add_to_assembled_list(prm);
-				}
-			}
+			handle_param(d_operand,R_DIR_DEST);
 		}
 	}
 	return opcode_address;
+}
+
+/*handle_param - determines where in the memory should the param be assigned to then assembles it and commits it to those locations*/
+void handle_param(op_param *p, int r_dir)
+{
+	if(p->op_method == OP_METH_R_DIRECT){
+		add_to_assembled_list(assemble_param(p, r_dir));
+	} else {
+		int prm = assemble_param(p, R_DIR_NONE);
+		if(p->op_method == OP_METH_DIRECT && prm == NOT_IN_MEMORY){
+			add_to_lbpr_list(add_to_assembled_list(prm),p->param);
+		} else if (p->op_method == OP_METH_DIST && is_dist_labels_addressed(p->param)){
+			add_to_distpr_list(p->param,curr_op_addr,add_to_assembled_list(prm));
+		} else {
+			add_to_assembled_list(prm);
+		}
+	}
 }
 
 /*identify_param - recives a param word, identifies the param type and returns it as a param that can be assembled
